@@ -3,7 +3,7 @@ import * as path from 'path'
 
 import * as chokidar from 'chokidar'
 import chalk from 'chalk'
-import * as wxTransformer from '@tarojs/transformer-wx'
+import wxTransformer from '@tarojs/transformer-wx'
 import * as t from 'babel-types'
 import generate from 'babel-generator'
 import traverse from 'babel-traverse'
@@ -123,8 +123,6 @@ async function buildH5Lib (uiIndex) {
     const transformResult = wxTransformer({
       code,
       sourcePath: tempEntryFilePath,
-      outputPath: outputEntryFilePath,
-      isNormal: true,
       isTyped: REG_TYPESCRIPT.test(tempEntryFilePath)
     })
     const { styleFiles, components, code: generateCode } = parseEntryAst(transformResult.ast, tempEntryFilePath)
