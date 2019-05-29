@@ -123,6 +123,7 @@ async function buildH5Lib (uiIndex) {
     const transformResult = wxTransformer({
       code,
       sourcePath: tempEntryFilePath,
+      isNormal: true,
       isTyped: REG_TYPESCRIPT.test(tempEntryFilePath)
     })
     const { styleFiles, components, code: generateCode } = parseEntryAst(transformResult.ast, tempEntryFilePath)
