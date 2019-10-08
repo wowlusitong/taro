@@ -3,31 +3,13 @@ import * as path from 'path'
 
 import * as wxTransformer from '@tarojs/transformer-wx'
 
-import {
-  printLog,
-  isDifferentArray,
-  copyFileSync,
-  getBabelConfig,
-  uglifyJS,
-  extnameExpRegOf
-} from '../util'
-import {
-  BUILD_TYPES,
-  processTypeEnum,
-  REG_TYPESCRIPT,
-  NODE_MODULES_REG,
-  PARSE_AST_TYPE
-} from '../util/constants'
+import { printLog, isDifferentArray, copyFileSync, getBabelConfig, uglifyJS, extnameExpRegOf } from '../util'
+import { BUILD_TYPES, processTypeEnum, REG_TYPESCRIPT, NODE_MODULES_REG, PARSE_AST_TYPE } from '../util/constants'
 import { callPlugin } from '../util/npm'
 import { npmCodeHack } from '../util/resolve_npm_files'
 import { IWxTransformResult, TogglableOptions } from '../util/types'
 
-import {
-  shouldTransformAgain,
-  getBuildData,
-  copyFilesFromSrcToOutput,
-  getDependencyTree
-} from './helper'
+import { shouldTransformAgain, getBuildData, copyFilesFromSrcToOutput, getDependencyTree } from './helper'
 import { parseAst } from './astProcess'
 import { IDependency } from './interface'
 
@@ -89,7 +71,7 @@ export function compileDepScripts (scriptFiles: string[], needUseBabel?: boolean
           })
           const ast = transformResult.ast
           const res = parseAst(PARSE_AST_TYPE.NORMAL, ast, [], item, outputItem)
-          const fileDep = dependencyTree.get(item) || {} as IDependency
+          const fileDep = dependencyTree.get(item) || ({} as IDependency)
           let resCode = res.code
           if (needUseBabel) {
             resCode = await compileScriptFile(res.code, item, outputItem, buildAdapter)
@@ -106,7 +88,7 @@ export function compileDepScripts (scriptFiles: string[], needUseBabel?: boolean
           modifyOutput = modifyOutput.split(path.sep).join('/')
           printLog(processTypeEnum.GENERATE, '依赖文件', modifyOutput)
           // 编译依赖的脚本文件
-          if (isDifferentArray(fileDep['script'], res.scriptFiles)) {
+          if (isDifferentArray(fileDep.script, res.scriptFiles)) {
             if (buildDepSync) {
               await Promise.all(compileDepScripts(res.scriptFiles, needUseBabel, buildDepSync))
             } else {
@@ -114,15 +96,15 @@ export function compileDepScripts (scriptFiles: string[], needUseBabel?: boolean
             }
           }
           // 拷贝依赖文件
-          if (isDifferentArray(fileDep['json'], res.jsonFiles)) {
+          if (isDifferentArray(fileDep.json, res.jsonFiles)) {
             copyFilesFromSrcToOutput(res.jsonFiles)
           }
-          if (isDifferentArray(fileDep['media'], res.mediaFiles)) {
+          if (isDifferentArray(fileDep.media, res.mediaFiles)) {
             copyFilesFromSrcToOutput(res.mediaFiles)
           }
-          fileDep['script'] = res.scriptFiles
-          fileDep['json'] = res.jsonFiles
-          fileDep['media'] = res.mediaFiles
+          fileDep.script = res.scriptFiles
+          fileDep.json = res.jsonFiles
+          fileDep.media = res.mediaFiles
           dependencyTree.set(item, fileDep)
         } catch (err) {
           printLog(processTypeEnum.ERROR, '编译失败', item.replace(appPath + path.sep, ''))
@@ -139,13 +121,7 @@ export async function compileScriptFile (
   outputFilePath: string,
   adapter: BUILD_TYPES
 ): Promise<string> {
-  const {
-    appPath,
-    sourceDir,
-    constantsReplaceList,
-    jsxAttributeNameReplace,
-    projectConfig
-  } = getBuildData()
+  const { appPath, sourceDir, constantsReplaceList, jsxAttributeNameReplace, projectConfig } = getBuildData()
   if (NODE_MODULES_REG.test(sourceFilePath) && fs.existsSync(outputFilePath)) {
     return fs.readFileSync(outputFilePath).toString()
   }

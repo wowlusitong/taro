@@ -75,10 +75,10 @@ const getLoader = (loaderName: string, options: Option) => {
 }
 
 const listify = listOrItem => {
-  if (Array.isArray( listOrItem )) {
+  if (Array.isArray(listOrItem)) {
     return listOrItem
   }
-  return [ listOrItem ]
+  return [listOrItem]
 }
 
 const getPlugin = (plugin: any, args: Option[]) => {
@@ -94,24 +94,63 @@ const mergeOption = ([...options]: Option[]): Option => {
 
 const processEnvOption = partial(mapKeys, key => `process.env.${key}`)
 
-const getStyleLoader = pipe(mergeOption, partial(getLoader, 'style-loader'))
-const getCssLoader = pipe(mergeOption, partial(getLoader, 'css-loader'))
-const getPostcssLoader = pipe(mergeOption, partial(getLoader, 'postcss-loader'))
-const getResolveUrlLoader = pipe(mergeOption, partial(getLoader, 'resolve-url-loader'))
-const getSassLoader = pipe(mergeOption, partial(getLoader, 'sass-loader'))
-const getLessLoader = pipe(mergeOption, partial(getLoader, 'less-loader'))
-const getStylusLoader = pipe(mergeOption, partial(getLoader, 'stylus-loader'))
-const getBabelLoader = pipe(mergeOption, partial(getLoader, 'babel-loader'))
-const getUrlLoader = pipe(mergeOption, partial(getLoader, 'url-loader'))
+const getStyleLoader = pipe(
+  mergeOption,
+  partial(getLoader, 'style-loader')
+)
+const getCssLoader = pipe(
+  mergeOption,
+  partial(getLoader, 'css-loader')
+)
+const getPostcssLoader = pipe(
+  mergeOption,
+  partial(getLoader, 'postcss-loader')
+)
+const getResolveUrlLoader = pipe(
+  mergeOption,
+  partial(getLoader, 'resolve-url-loader')
+)
+const getSassLoader = pipe(
+  mergeOption,
+  partial(getLoader, 'sass-loader')
+)
+const getLessLoader = pipe(
+  mergeOption,
+  partial(getLoader, 'less-loader')
+)
+const getStylusLoader = pipe(
+  mergeOption,
+  partial(getLoader, 'stylus-loader')
+)
+const getBabelLoader = pipe(
+  mergeOption,
+  partial(getLoader, 'babel-loader')
+)
+const getUrlLoader = pipe(
+  mergeOption,
+  partial(getLoader, 'url-loader')
+)
 const getExtractCssLoader = () => {
   return {
     loader: MiniCssExtractPlugin.loader
   }
 }
 
-const getMiniCssExtractPlugin = pipe(mergeOption, listify, partial(getPlugin, MiniCssExtractPlugin))
-const getHtmlWebpackPlugin = pipe(mergeOption, listify, partial(getPlugin, HtmlWebpackPlugin))
-const getDefinePlugin = pipe(mergeOption, listify, partial(getPlugin, webpack.DefinePlugin))
+const getMiniCssExtractPlugin = pipe(
+  mergeOption,
+  listify,
+  partial(getPlugin, MiniCssExtractPlugin)
+)
+const getHtmlWebpackPlugin = pipe(
+  mergeOption,
+  listify,
+  partial(getPlugin, HtmlWebpackPlugin)
+)
+const getDefinePlugin = pipe(
+  mergeOption,
+  listify,
+  partial(getPlugin, webpack.DefinePlugin)
+)
 const getHotModuleReplacementPlugin = partial(getPlugin, webpack.HotModuleReplacementPlugin, [])
 const getUglifyPlugin = ([enableSourceMap, uglifyOptions]) => {
   return new UglifyJsPlugin({
@@ -122,12 +161,13 @@ const getUglifyPlugin = ([enableSourceMap, uglifyOptions]) => {
   })
 }
 const getCssoWebpackPlugin = ([cssoOption]) => {
-  return pipe(mergeOption, listify, partial(getPlugin, CssoWebpackPlugin))([defaultCSSCompressOption, cssoOption])
+  return pipe(
+    mergeOption,
+    listify,
+    partial(getPlugin, CssoWebpackPlugin)
+  )([defaultCSSCompressOption, cssoOption])
 }
-const getCopyWebpackPlugin = ({ copy, appPath }: {
-  copy: CopyOptions,
-  appPath: string
-}) => {
+const getCopyWebpackPlugin = ({ copy, appPath }: { copy: CopyOptions; appPath: string }) => {
   const args = [
     copy.patterns.map(({ from, to }) => {
       return {
@@ -160,46 +200,48 @@ const fontReg = /\.(woff2?|eot|ttf|otf)(\?.*)?$/
 const imageReg = /\.(png|jpe?g|gif|bpm|svg)(\?.*)?$/
 
 const isNodeModule = (filename: string) => /\bnode_modules\b/.test(filename)
-const taroModuleRegs = [
-  /@tarojs[/\\_]components/, /\btaro-components\b/
-]
+const taroModuleRegs = [/@tarojs[/\\_]components/, /\btaro-components\b/]
 const isTaroModule = (filename: string) => taroModuleRegs.some(reg => reg.test(filename))
 const defaultEsnextModuleRegs = [
-  /@tarojs[/\\_]components/, /\btaro-components\b/,
-  /@tarojs[/\\_]taro-h5/, /\btaro-h5\b/,
-  /@tarojs[/\\_]router/, /\btaro-router\b/,
-  /@tarojs[/\\_]redux-h5/, /\btaro-redux-h5\b/,
-  /@tarojs[/\\_]mobx-h5/, /\btaro-mobx-h5\b/
+  /@tarojs[/\\_]components/,
+  /\btaro-components\b/,
+  /@tarojs[/\\_]taro-h5/,
+  /\btaro-h5\b/,
+  /@tarojs[/\\_]router/,
+  /\btaro-router\b/,
+  /@tarojs[/\\_]redux-h5/,
+  /\btaro-redux-h5\b/,
+  /@tarojs[/\\_]mobx-h5/,
+  /\btaro-mobx-h5\b/
 ]
 
 const getEsnextModuleRules = esnextModules => {
-   return [
-    ...defaultEsnextModuleRegs,
-    ...esnextModules
-  ]
+  return [...defaultEsnextModuleRegs, ...esnextModules]
 }
 
-const getModule = (appPath: string, {
-  staticDirectory,
-  designWidth,
-  deviceRatio,
-  enableExtract,
-  enableSourceMap,
+const getModule = (
+  appPath: string,
+  {
+    staticDirectory,
+    designWidth,
+    deviceRatio,
+    enableExtract,
+    enableSourceMap,
 
-  styleLoaderOption,
-  cssLoaderOption,
-  lessLoaderOption,
-  sassLoaderOption,
-  stylusLoaderOption,
-  fontUrlLoaderOption,
-  imageUrlLoaderOption,
-  mediaUrlLoaderOption,
-  esnextModules = [] as (string | RegExp)[],
+    styleLoaderOption,
+    cssLoaderOption,
+    lessLoaderOption,
+    sassLoaderOption,
+    stylusLoaderOption,
+    fontUrlLoaderOption,
+    imageUrlLoaderOption,
+    mediaUrlLoaderOption,
+    esnextModules = [] as (string | RegExp)[],
 
-  module,
-  plugins
-}) => {
-
+    module,
+    plugins
+  }
+) => {
   const postcssOption: PostcssOption = module.postcss || {}
 
   const defaultStyleLoaderOption = {
@@ -210,7 +252,11 @@ const getModule = (appPath: string, {
      */
   }
 
-  const cssModuleOptions: PostcssOption.cssModules = recursiveMerge({}, defaultCssModuleOption, postcssOption.cssModules)
+  const cssModuleOptions: PostcssOption.cssModules = recursiveMerge(
+    {},
+    defaultCssModuleOption,
+    postcssOption.cssModules
+  )
 
   const { namingPattern, generateScopedName } = cssModuleOptions.config!
 
@@ -247,28 +293,22 @@ const getModule = (appPath: string, {
    * 使用正则匹配判断是否是es模块
    * 规则参考：https://github.com/webpack/webpack/blob/master/lib/RuleSet.js#L413
    */
-  const isEsnextModule = (filename: string) => esnextModuleRules.some(pattern => {
-    if (pattern instanceof RegExp) {
-      return pattern.test(filename)
-    } else {
-      return filename.indexOf(pattern) > -1
-    }
-  })
+  const isEsnextModule = (filename: string) =>
+    esnextModuleRules.some(pattern => {
+      if (pattern instanceof RegExp) {
+        return pattern.test(filename)
+      } else {
+        return filename.indexOf(pattern) > -1
+      }
+    })
 
-  const styleLoader = getStyleLoader([
-    defaultStyleLoaderOption,
-    styleLoaderOption
-  ])
-  const topStyleLoader = getStyleLoader([
-    defaultStyleLoaderOption,
-    { insertAt: 'top' },
-    styleLoaderOption
-  ])
+  const styleLoader = getStyleLoader([defaultStyleLoaderOption, styleLoaderOption])
+  const topStyleLoader = getStyleLoader([defaultStyleLoaderOption, { insertAt: 'top' }, styleLoaderOption])
 
   const extractCssLoader = getExtractCssLoader()
 
   const lastStyleLoader = enableExtract ? extractCssLoader : styleLoader
-  
+
   /**
    * css-loader 1.0.0版本移除了minimize选项...升级需谨慎
    *
@@ -276,11 +316,13 @@ const getModule = (appPath: string, {
    */
   const cssLoader = getCssLoader(cssOptions)
   const cssLoaders: {
-    include?;
-    use;
-  }[] = [{
-    use: [cssLoader]
-  }]
+    include?
+    use
+  }[] = [
+    {
+      use: [cssLoader]
+    }
+  ]
 
   if (cssModuleOptions.enable) {
     const cssLoaderWithModule = getCssLoader(cssOptionsWithModule)
@@ -291,10 +333,7 @@ const getModule = (appPath: string, {
       cssModuleCondition = styleModuleReg
     } else {
       cssModuleCondition = {
-        and: [
-          { exclude: styleGlobalReg },
-          { exclude: [isNodeModule] }
-        ]
+        and: [{ exclude: styleGlobalReg }, { exclude: [isNodeModule] }]
       }
     }
     cssLoaders.unshift({
@@ -317,10 +356,13 @@ const getModule = (appPath: string, {
 
   const resolveUrlLoader = getResolveUrlLoader([])
 
-  const sassLoader = getSassLoader([{
-    sourceMap: true,
-    implementation: sass
-  }, sassLoaderOption])
+  const sassLoader = getSassLoader([
+    {
+      sourceMap: true,
+      implementation: sass
+    },
+    sassLoaderOption
+  ])
 
   const lessLoader = getLessLoader([{ sourceMap: enableSourceMap }, lessLoaderOption])
 
@@ -352,15 +394,17 @@ const getModule = (appPath: string, {
   rule.postcss = {
     test: styleReg,
     use: [postcssLoader],
-    exclude: [filename => {
-      if (isTaroModule(filename)) {
-        return true
-      } else if (isEsnextModule(filename)) {
-        return false
-      } else {
-        return isNodeModule(filename)
+    exclude: [
+      filename => {
+        if (isTaroModule(filename)) {
+          return true
+        } else if (isEsnextModule(filename)) {
+          return false
+        } else {
+          return isNodeModule(filename)
+        }
       }
-    }]
+    ]
   }
   rule.taroStyle = {
     test: styleReg,
@@ -383,28 +427,37 @@ const getModule = (appPath: string, {
   rule.media = {
     test: mediaReg,
     use: {
-      urlLoader: getUrlLoader([defaultMediaUrlLoaderOption, {
-        name: `${staticDirectory}/media/[name].[ext]`,
-        ...mediaUrlLoaderOption
-      }])
+      urlLoader: getUrlLoader([
+        defaultMediaUrlLoaderOption,
+        {
+          name: `${staticDirectory}/media/[name].[ext]`,
+          ...mediaUrlLoaderOption
+        }
+      ])
     }
   }
   rule.font = {
     test: fontReg,
     use: {
-      urlLoader: getUrlLoader([defaultFontUrlLoaderOption, {
-        name: `${staticDirectory}/fonts/[name].[ext]`,
-        ...fontUrlLoaderOption
-      }])
+      urlLoader: getUrlLoader([
+        defaultFontUrlLoaderOption,
+        {
+          name: `${staticDirectory}/fonts/[name].[ext]`,
+          ...fontUrlLoaderOption
+        }
+      ])
     }
   }
   rule.image = {
     test: imageReg,
     use: {
-      urlLoader: getUrlLoader([defaultImageUrlLoaderOption, {
-        name: `${staticDirectory}/images/[name].[ext]`,
-        ...imageUrlLoaderOption
-      }])
+      urlLoader: getUrlLoader([
+        defaultImageUrlLoaderOption,
+        {
+          name: `${staticDirectory}/images/[name].[ext]`,
+          ...imageUrlLoaderOption
+        }
+      ])
     }
   }
 
@@ -425,10 +478,19 @@ const getDevtool = enableSourceMap => {
   return enableSourceMap ? 'cheap-module-eval-source-map' : 'none'
 }
 
-export {
-  isNodeModule,
-  isTaroModule,
-  getEsnextModuleRules
-}
+export { isNodeModule, isTaroModule, getEsnextModuleRules }
 
-export { getEntry, getOutput, getMiniCssExtractPlugin, getHtmlWebpackPlugin, getDefinePlugin, processEnvOption, getHotModuleReplacementPlugin, getModule, getUglifyPlugin, getDevtool, getCssoWebpackPlugin, getCopyWebpackPlugin }
+export {
+  getEntry,
+  getOutput,
+  getMiniCssExtractPlugin,
+  getHtmlWebpackPlugin,
+  getDefinePlugin,
+  processEnvOption,
+  getHotModuleReplacementPlugin,
+  getModule,
+  getUglifyPlugin,
+  getDevtool,
+  getCssoWebpackPlugin,
+  getCopyWebpackPlugin
+}

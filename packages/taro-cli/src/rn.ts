@@ -17,7 +17,7 @@ import { IBuildConfig } from './util/types'
 // import { Error } from 'tslint/lib/error'
 
 let isBuildingStyles = {}
-let styleDenpendencyTree = {}
+const styleDenpendencyTree = {}
 
 const depTree: {
   [key: string]: string[]
@@ -33,8 +33,9 @@ class Compiler {
   appPath: string
   routerMode: string
   customRoutes: {
-    [key: string]: string
+    [key: string]: string;
   }
+
   routerBasename: string
   sourcePath: string
   sourceDir: string
@@ -87,17 +88,17 @@ class Compiler {
       const filePath = path.join(p)
       const fileExt = path.extname(filePath)
       Util.printLog(processTypeEnum.COMPILE, _.camelCase(fileExt).toUpperCase(), filePath)
-      return StyleProcess.loadStyle({filePath, pluginsConfig: this.pluginsConfig}, this.appPath)
+      return StyleProcess.loadStyle({ filePath, pluginsConfig: this.pluginsConfig }, this.appPath)
     })).then(resList => { // postcss
       return Promise.all(resList.map(item => {
-        return StyleProcess.postCSS({...item as { css: string, filePath: string }, projectConfig: this.projectConfig})
+        return StyleProcess.postCSS({ ...item as { css: string, filePath: string }, projectConfig: this.projectConfig })
       }))
     }).then(resList => {
       const styleObjectEntire = {}
       resList.forEach(item => {
-        const styleObject = StyleProcess.getStyleObject({css: item.css, filePath: item.filePath})
+        const styleObject = StyleProcess.getStyleObject({ css: item.css, filePath: item.filePath })
         // validate styleObject
-        StyleProcess.validateStyle({styleObject, filePath: item.filePath})
+        StyleProcess.validateStyle({ styleObject, filePath: item.filePath })
 
         Object.assign(styleObjectEntire, styleObject)
         if (filePath !== this.entryFilePath) { // 非入口文件，合并全局样式
@@ -114,7 +115,7 @@ class Compiler {
       const basename = path.basename(tempFilePath, path.extname(tempFilePath))
       tempFilePath = path.join(path.dirname(tempFilePath), `${basename}_styles.js`)
 
-      StyleProcess.writeStyleFile({css, tempFilePath})
+      StyleProcess.writeStyleFile({ css, tempFilePath })
     }).catch((e) => {
       throw new Error(e)
     })
@@ -146,12 +147,12 @@ class Compiler {
     }
     const dirname = path.dirname(filePath)
     const distDirname = dirname.replace(this.sourceDir, this.tempPath)
-    let distPath = path.format({dir: distDirname, base: path.basename(filePath)})
+    let distPath = path.format({ dir: distDirname, base: path.basename(filePath) })
     const code = fs.readFileSync(filePath, 'utf-8')
     if (REG_STYLE.test(filePath)) {
       // do something
     } else if (REG_SCRIPTS.test(filePath)) {
-      if(/\.jsx(\?.*)?$/.test(filePath)){
+      if (/\.jsx(\?.*)?$/.test(filePath)) {
         distPath = distPath.replace(/\.jsx(\?.*)?$/, '.js')
       }
       if (REG_TYPESCRIPT.test(filePath)) {
@@ -184,11 +185,11 @@ class Compiler {
    */
   buildTemp () {
     return new Promise((resolve, reject) => {
-      const filePaths: string[] = [];
+      const filePaths: string[] = []
       klaw(this.sourceDir)
         .on('data', file => {
           if (!file.stats.isDirectory()) {
-            filePaths.push(file.path);
+            filePaths.push(file.path)
           }
         })
         .on('error', (err, item) => {
@@ -197,14 +198,14 @@ class Compiler {
         })
         .on('end', () => {
           Promise.all(filePaths.map(filePath => this.processFile(filePath)))
-          .then(() => {
-            if (!this.hasJDReactOutput) {
-              this.initProjectFile()
-              resolve()
-            } else {
-              resolve()
-            }
-          })
+            .then(() => {
+              if (!this.hasJDReactOutput) {
+                this.initProjectFile()
+                resolve()
+              } else {
+                resolve()
+              }
+            })
         })
     })
   }
@@ -226,7 +227,7 @@ class Compiler {
     fs.ensureDirSync(BUNDLE_DIR_NAME)
     execSync(
       `node ../node_modules/react-native/local-cli/cli.js bundle --entry-file ./${TEMP_DIR_NAME}/index.js --bundle-output ./${BUNDLE_DIR_NAME}/index.bundle --assets-dest ./${BUNDLE_DIR_NAME} --dev false`,
-      {stdio: 'inherit'})
+      { stdio: 'inherit' })
   }
 
   async perfWrap (callback, args?) {
@@ -341,7 +342,7 @@ function installDep (path: string) {
 export { Compiler }
 
 export async function build (appPath: string, buildConfig: IBuildConfig) {
-  const {watch} = buildConfig
+  const { watch } = buildConfig
   process.env.TARO_ENV = BUILD_TYPES.RN
   const compiler = new Compiler(appPath)
   fs.ensureDirSync(compiler.tempPath)
@@ -361,7 +362,7 @@ export async function build (appPath: string, buildConfig: IBuildConfig) {
   if (watch) {
     compiler.watchFiles()
     if (!compiler.hasJDReactOutput) {
-      startServerInNewWindow({appPath})
+      startServerInNewWindow({ appPath })
     }
   } else {
     compiler.buildBundle()
@@ -372,7 +373,7 @@ export async function build (appPath: string, buildConfig: IBuildConfig) {
  * @description run packager server
  * copy from react-native/local-cli/runAndroid/runAndroid.js
  */
-function startServerInNewWindow ({port = 8081, appPath}) {
+function startServerInNewWindow ({ port = 8081, appPath }) {
   // set up OS-specific filenames and commands
   const isWindows = /^win/.test(process.platform)
   const scriptFile = isWindows
@@ -386,7 +387,7 @@ function startServerInNewWindow ({port = 8081, appPath}) {
   // set up the launchpackager.(command|bat) file
   const scriptsDir = path.resolve(appPath, './node_modules', 'react-native', 'scripts')
   const launchPackagerScript = path.resolve(scriptsDir, scriptFile)
-  const procConfig: SpawnSyncOptions = {cwd: scriptsDir}
+  const procConfig: SpawnSyncOptions = { cwd: scriptsDir }
   const terminal = process.env.REACT_TERMINAL
 
   // set up the .packager.(env|bat) file to ensure the packager starts on the right port

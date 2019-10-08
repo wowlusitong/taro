@@ -4,8 +4,24 @@ import * as path from 'path'
 import { Config as IConfig } from '@tarojs/taro'
 import chalk from 'chalk'
 
-import { REG_WXML_IMPORT, processTypeEnum, taroJsFramework, BUILD_TYPES, REG_SCRIPT, REG_STYLE, REG_UX } from '../util/constants'
-import { isEmptyObject, printLog, resolveScriptPath, copyFileSync, extnameExpRegOf, resolveQuickappFilePath, processUxContent } from '../util'
+import {
+  REG_WXML_IMPORT,
+  processTypeEnum,
+  taroJsFramework,
+  BUILD_TYPES,
+  REG_SCRIPT,
+  REG_STYLE,
+  REG_UX
+} from '../util/constants'
+import {
+  isEmptyObject,
+  printLog,
+  resolveScriptPath,
+  copyFileSync,
+  extnameExpRegOf,
+  resolveQuickappFilePath,
+  processUxContent
+} from '../util'
 
 import { buildDepComponents } from './component'
 import { compileDepScripts } from './compileScript'
@@ -58,7 +74,7 @@ function transformNativeQuickappComponent (configFile, componentPath) {
   }
   let componentStr = fs.readFileSync(componentUxPath).toString()
   componentStr = processUxContent(componentStr, value => {
-    value = value.replace(/\'?\"?/ig, '')
+    value = value.replace(/\'?\"?/gi, '')
     if (REG_SCRIPT.test(value) || REG_STYLE.test(value)) {
       const filePath = path.resolve(componentUxPath, '..', value)
       const outputFilePath = filePath.replace(sourceDir, outputDir)
@@ -97,11 +113,15 @@ export function transfromNativeComponents (configFile: string, componentConfig: 
         const componentJSONPath = componentJSPath.replace(extnameExpRegOf(componentJSPath), outputFilesTypes.CONFIG)
         const componentWXMLPath = componentJSPath.replace(extnameExpRegOf(componentJSPath), outputFilesTypes.TEMPL)
         const componentWXSSPath = componentJSPath.replace(extnameExpRegOf(componentJSPath), outputFilesTypes.STYLE)
-        const outputComponentJSPath = componentJSPath.replace(sourceDir, outputDir).replace(extnameExpRegOf(componentJSPath), outputFilesTypes.SCRIPT)
+        const outputComponentJSPath = componentJSPath
+          .replace(sourceDir, outputDir)
+          .replace(extnameExpRegOf(componentJSPath), outputFilesTypes.SCRIPT)
         if (fs.existsSync(componentJSPath)) {
           const componentJSContent = fs.readFileSync(componentJSPath).toString()
           if (componentJSContent.indexOf(taroJsFramework) >= 0 && !fs.existsSync(componentWXMLPath)) {
-            const buildDepComponentsRes = await buildDepComponents([{ path: componentJSPath, name: item, type: 'default' }])
+            const buildDepComponentsRes = await buildDepComponents([
+              { path: componentJSPath, name: item, type: 'default' }
+            ])
             return buildDepComponentsRes
           }
           await compileDepScripts([componentJSPath], true)
@@ -109,16 +129,25 @@ export function transfromNativeComponents (configFile: string, componentConfig: 
           return printLog(processTypeEnum.ERROR, '编译错误', `原生组件文件 ${componentJSPath} 不存在！`)
         }
         if (fs.existsSync(componentWXMLPath)) {
-          const outputComponentWXMLPath = outputComponentJSPath.replace(extnameExpRegOf(outputComponentJSPath), outputFilesTypes.TEMPL)
+          const outputComponentWXMLPath = outputComponentJSPath.replace(
+            extnameExpRegOf(outputComponentJSPath),
+            outputFilesTypes.TEMPL
+          )
           processNativeWxml(componentWXMLPath, null, outputComponentWXMLPath)
         }
         if (fs.existsSync(componentWXSSPath)) {
-          const outputComponentWXSSPath = outputComponentJSPath.replace(extnameExpRegOf(outputComponentJSPath), outputFilesTypes.STYLE)
+          const outputComponentWXSSPath = outputComponentJSPath.replace(
+            extnameExpRegOf(outputComponentJSPath),
+            outputFilesTypes.STYLE
+          )
           await compileDepStyles(outputComponentWXSSPath, [componentWXSSPath])
         }
         if (fs.existsSync(componentJSONPath)) {
           const componentJSON = require(componentJSONPath)
-          const outputComponentJSONPath = outputComponentJSPath.replace(extnameExpRegOf(outputComponentJSPath), outputFilesTypes.CONFIG)
+          const outputComponentJSONPath = outputComponentJSPath.replace(
+            extnameExpRegOf(outputComponentJSPath),
+            outputFilesTypes.CONFIG
+          )
           copyFileSync(componentJSONPath, outputComponentJSONPath)
 
           // 解决组件循环依赖不断编译爆栈的问题

@@ -1,6 +1,6 @@
 import { History } from '../utils/types'
-import invariant from 'invariant';
-import Taro from '@tarojs/taro-h5';
+import invariant from 'invariant'
+import Taro from '@tarojs/taro-h5'
 
 type SuccessCallback = (res: any) => any
 type FailCallback = (err: any) => any
@@ -68,12 +68,12 @@ const createNavigateBack = (history: History) => {
 const createRedirectTo = (history: History) => {
   return function ({ url }: RedirectToOption) {
     const res: Result = {}
-    
+
     try {
       invariant(url, 'redirectTo must be called with a url')
 
       if (/^(https?:)\/\//.test(url)) {
-        window.location.assign(url);
+        window.location.assign(url)
       } else {
         history.replace(url)
       }
@@ -92,7 +92,7 @@ const createReLaunch = (history: History) => {
     try {
       history.go(-(history.length - 1))
       if (/^(https?:)\/\//.test(url)) {
-        window.location.assign(url);
+        window.location.assign(url)
       } else {
         history.replace(url)
       }

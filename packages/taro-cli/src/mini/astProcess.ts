@@ -9,8 +9,6 @@ import * as _ from 'lodash'
 import { Config as IConfig } from '@tarojs/taro'
 import getHashName from '../util/hash'
 
-const template = require('babel-template')
-
 import {
   REG_SCRIPT,
   REG_TYPESCRIPT,
@@ -50,18 +48,14 @@ import babylonConfig from '../config/babylon'
 import { getExactedNpmFilePath, getNotExistNpmList } from '../util/npmExact'
 
 import { IComponentObj } from './interface'
-import {
-  getBuildData,
-  isFileToBePage
-} from './helper'
+import { getBuildData, isFileToBePage } from './helper'
 import { processStyleUseCssModule } from './compileStyle'
 import { QUICKAPP_SPECIAL_COMPONENTS } from './constants'
 
+const template = require('babel-template')
+
 function generateCssModuleMapFilename (styleFilePath) {
-  const {
-    sourceDir,
-    outputDir
-  } = getBuildData()
+  const { sourceDir, outputDir } = getBuildData()
   const cssModuleMapFilename = path.basename(styleFilePath) + '.map.js'
   const cssModuleMapFile = path.join(path.dirname(styleFilePath), cssModuleMapFilename).replace(sourceDir, outputDir)
   return cssModuleMapFile
@@ -75,14 +69,14 @@ function createCssModuleMap (styleFilePath, tokens) {
 }
 
 interface IAnalyzeImportUrlOptions {
-  astPath: any,
-  value: string,
-  sourceFilePath: string,
-  filePath: string,
-  styleFiles: string[],
-  scriptFiles: string[],
-  jsonFiles: string[],
-  mediaFiles: string[]
+  astPath: any;
+  value: string;
+  sourceFilePath: string;
+  filePath: string;
+  styleFiles: string[];
+  scriptFiles: string[];
+  jsonFiles: string[];
+  mediaFiles: string[];
 }
 
 function analyzeImportUrl ({
@@ -97,14 +91,7 @@ function analyzeImportUrl ({
 }: IAnalyzeImportUrlOptions): void {
   const valueExtname = path.extname(value)
   const node = astPath.node
-  const {
-    nodeModulesPath,
-    npmOutputDir,
-    sourceDir,
-    outputDir,
-    npmConfig,
-    projectConfig
-  } = getBuildData()
+  const { nodeModulesPath, npmOutputDir, sourceDir, outputDir, npmConfig, projectConfig } = getBuildData()
   const publicPath = (projectConfig.weapp || ({} as any)).publicPath
   if (value.indexOf('.') === 0) {
     let importPath = path.resolve(path.dirname(sourceFilePath), value)
@@ -143,7 +130,9 @@ function analyzeImportUrl ({
             } else {
               objArr = t.objectExpression(convertObjectToAstExpression(obj))
             }
-            astPath.replaceWith(t.variableDeclaration('const', [t.variableDeclarator(t.identifier(defaultSpecifier), objArr)]))
+            astPath.replaceWith(
+              t.variableDeclaration('const', [t.variableDeclarator(t.identifier(defaultSpecifier), objArr)])
+            )
           }
         }
       } else if (REG_FONT.test(valueExtname) || REG_IMAGE.test(valueExtname) || REG_MEDIA.test(valueExtname)) {
@@ -173,7 +162,11 @@ function analyzeImportUrl ({
           }
         }
         if (defaultSpecifier) {
-          astPath.replaceWith(t.variableDeclaration('const', [t.variableDeclarator(t.identifier(defaultSpecifier), t.stringLiteral(showPath.replace(/\\/g, '/')))]))
+          astPath.replaceWith(
+            t.variableDeclaration('const', [
+              t.variableDeclarator(t.identifier(defaultSpecifier), t.stringLiteral(showPath.replace(/\\/g, '/')))
+            ])
+          )
         } else {
           astPath.remove()
         }
@@ -219,15 +212,15 @@ function analyzeImportUrl ({
 }
 
 export interface IParseAstReturn {
-  code: string,
-  styleFiles: string[],
-  scriptFiles: string[],
-  jsonFiles: string[],
-  mediaFiles: string[]
-  configObj: IConfig,
-  componentClassName: string,
-  taroSelfComponents: Set<string>,
-  hasEnablePageScroll: boolean
+  code: string;
+  styleFiles: string[];
+  scriptFiles: string[];
+  jsonFiles: string[];
+  mediaFiles: string[];
+  configObj: IConfig;
+  componentClassName: string;
+  taroSelfComponents: Set<string>;
+  hasEnablePageScroll: boolean;
 }
 
 export function parseAst (
@@ -236,7 +229,7 @@ export function parseAst (
   depComponents: IComponentObj[],
   sourceFilePath: string,
   filePath: string,
-  npmSkip: boolean = false
+  npmSkip = false
 ): IParseAstReturn {
   const styleFiles: string[] = []
   const scriptFiles: string[] = []
@@ -258,12 +251,12 @@ export function parseAst (
     projectConfig,
     quickappManifest
   } = getBuildData()
-  const publicPath = (projectConfig.weapp || {} as any).publicPath
+  const publicPath = (projectConfig.weapp || ({} as any)).publicPath
   const notExistNpmList = getNotExistNpmList()
   const taroMiniAppFramework = `@tarojs/taro-${buildAdapter}`
   let configObj: IConfig = {}
-  let componentClassName: string = ''
-  let taroJsReduxConnect: string = ''
+  let componentClassName = ''
+  let taroJsReduxConnect = ''
   let taroImportDefaultName
   let needExportDefault = false
   let exportTaroReduxConnected: string | null = null
@@ -307,14 +300,18 @@ export function parseAst (
                 astPath.traverse({
                   ExpressionStatement (astPath) {
                     const node = astPath.node
-                    if (node.expression &&
+                    if (
+                      node.expression &&
                       node.expression.type === 'AssignmentExpression' &&
-                      node.expression.operator === '=') {
+                      node.expression.operator === '='
+                    ) {
                       const left = node.expression.left
-                      if (left.type === 'MemberExpression' &&
+                      if (
+                        left.type === 'MemberExpression' &&
                         left.object.type === 'ThisExpression' &&
                         left.property.type === 'Identifier' &&
-                        left.property.name === 'config') {
+                        left.property.name === 'config'
+                      ) {
                         configObj = traverseObjectNode(node.expression.right, buildAdapter)
                       }
                     }
@@ -330,7 +327,7 @@ export function parseAst (
                 t.identifier(componentClassName),
                 node.superClass as t.Expression,
                 node.body as t.ClassBody,
-                node.decorators as t.Decorator[] || []
+                (node.decorators as t.Decorator[]) || []
               )
             )
           } else if (node.id.name === 'App') {
@@ -340,7 +337,7 @@ export function parseAst (
                 t.identifier(componentClassName),
                 node.superClass as t.Expression,
                 node.body as t.ClassBody,
-                node.decorators as t.Decorator[] || []
+                (node.decorators as t.Decorator[]) || []
               )
             )
           } else {
@@ -375,7 +372,7 @@ export function parseAst (
                 t.identifier(componentClassName),
                 node.superClass as t.Expression,
                 node.body as t.ClassBody,
-                node.decorators as t.Decorator[] || []
+                (node.decorators as t.Decorator[]) || []
               )
             )
           } else if (node.id.name === 'App') {
@@ -385,7 +382,7 @@ export function parseAst (
                 t.identifier(componentClassName),
                 node.superClass as t.Expression,
                 node.body as t.ClassBody,
-                node.decorators as t.Decorator[] || []
+                (node.decorators as t.Decorator[]) || []
               )
             )
           } else {
@@ -399,9 +396,11 @@ export function parseAst (
       const node = astPath.node
       const left = node.left
       if (t.isMemberExpression(left) && t.isIdentifier(left.object)) {
-        if (left.object.name === componentClassName
-            && t.isIdentifier(left.property)
-            && left.property.name === 'config') {
+        if (
+          left.object.name === componentClassName &&
+          t.isIdentifier(left.property) &&
+          left.property.name === 'config'
+        ) {
           needSetConfigFromHooks = true
           configFromHooks = node.right
           configObj = traverseObjectNode(node.right, buildAdapter)
@@ -511,7 +510,7 @@ export function parseAst (
                 npmOutputDir,
                 compileConfig,
                 env: projectConfig.env || {},
-                uglify: projectConfig!.plugins!.uglify || {  enable: true  },
+                uglify: projectConfig!.plugins!.uglify || { enable: true },
                 babelConfig: getBabelConfig(projectConfig!.plugins!.babel) || {},
                 quickappManifest
               })
@@ -520,7 +519,8 @@ export function parseAst (
             }
           }
         }
-      } else if (CSS_EXT.indexOf(path.extname(value)) !== -1 && specifiers.length > 0) { // 对 使用 import style from './style.css' 语法引入的做转化处理
+      } else if (CSS_EXT.indexOf(path.extname(value)) !== -1 && specifiers.length > 0) {
+        // 对 使用 import style from './style.css' 语法引入的做转化处理
         printLog(processTypeEnum.GENERATE, '替换代码', `为文件 ${sourceFilePath} 生成 css modules`)
         const styleFilePath = path.join(path.dirname(sourceFilePath), value)
         const styleCode = fs.readFileSync(styleFilePath).toString()
@@ -532,8 +532,11 @@ export function parseAst (
           createCssModuleMap(styleFilePath, tokens)
         })
         const cssModuleMapFile = generateCssModuleMapFilename(styleFilePath)
-        astPath.node.source = t.stringLiteral(astPath.node.source.value.replace(path.basename(styleFilePath), path.basename(cssModuleMapFile)))
-        if (styleFiles.indexOf(styleFilePath) < 0) { // add this css file to queue
+        astPath.node.source = t.stringLiteral(
+          astPath.node.source.value.replace(path.basename(styleFilePath), path.basename(cssModuleMapFile))
+        )
+        if (styleFiles.indexOf(styleFilePath) < 0) {
+          // add this css file to queue
           styleFiles.push(styleFilePath)
         }
       } else if (path.isAbsolute(value)) {
@@ -545,7 +548,11 @@ export function parseAst (
       const node = astPath.node
       const callee = node.callee as (t.Identifier | t.MemberExpression)
       if (t.isMemberExpression(callee)) {
-        if (taroImportDefaultName && (callee.object as t.Identifier).name === taroImportDefaultName && (callee.property as t.Identifier).name === 'render') {
+        if (
+          taroImportDefaultName &&
+          (callee.object as t.Identifier).name === taroImportDefaultName &&
+          (callee.property as t.Identifier).name === 'render'
+        ) {
           astPath.remove()
         }
       } else if (callee.name === 'require') {
@@ -621,7 +628,7 @@ export function parseAst (
                   npmOutputDir,
                   compileConfig,
                   env: projectConfig.env || {},
-                  uglify: projectConfig!.plugins!.uglify || {  enable: true  },
+                  uglify: projectConfig!.plugins!.uglify || { enable: true },
                   babelConfig: getBabelConfig(projectConfig!.plugins!.babel) || {},
                   quickappManifest
                 })
@@ -630,7 +637,8 @@ export function parseAst (
               }
             }
           }
-        } else if (CSS_EXT.indexOf(path.extname(value)) !== -1 && t.isVariableDeclarator(astPath.parentPath)) { // 对 使用 const style = require('./style.css') 语法引入的做转化处理
+        } else if (CSS_EXT.indexOf(path.extname(value)) !== -1 && t.isVariableDeclarator(astPath.parentPath)) {
+          // 对 使用 const style = require('./style.css') 语法引入的做转化处理
           printLog(processTypeEnum.GENERATE, '替换代码', `为文件 ${sourceFilePath} 生成 css modules`)
           const styleFilePath = path.join(path.dirname(sourceFilePath), value)
           const styleCode = fs.readFileSync(styleFilePath).toString()
@@ -643,7 +651,8 @@ export function parseAst (
           })
           const cssModuleMapFile = generateCssModuleMapFilename(styleFilePath)
           args[0].value = args[0].value.replace(path.basename(styleFilePath), path.basename(cssModuleMapFile))
-          if (styleFiles.indexOf(styleFilePath) < 0) { // add this css file to queue
+          if (styleFiles.indexOf(styleFilePath) < 0) {
+            // add this css file to queue
             styleFiles.push(styleFilePath)
           }
         } else if (path.isAbsolute(value)) {
@@ -656,10 +665,7 @@ export function parseAst (
       const node = astPath.node
       const declaration = node.declaration
       needExportDefault = false
-      if (
-        declaration &&
-        (declaration.type === 'ClassDeclaration' || declaration.type === 'ClassExpression')
-      ) {
+      if (declaration && (declaration.type === 'ClassDeclaration' || declaration.type === 'ClassExpression')) {
         const superClass = declaration.superClass
         if (superClass) {
           let hasCreateData = false
@@ -680,8 +686,15 @@ export function parseAst (
               componentClassName = declaration.id.name
             }
             const isClassDcl = declaration.type === 'ClassDeclaration'
-            const classDclProps = [t.identifier(componentClassName), superClass, declaration.body, declaration.decorators || []]
-            astPath.replaceWith(isClassDcl ? t.classDeclaration.apply(null, classDclProps) : t.classExpression.apply(null, classDclProps))
+            const classDclProps = [
+              t.identifier(componentClassName),
+              superClass,
+              declaration.body,
+              declaration.decorators || []
+            ]
+            astPath.replaceWith(
+              isClassDcl ? t.classDeclaration.apply(null, classDclProps) : t.classExpression.apply(null, classDclProps)
+            )
           }
         }
       } else if (declaration.type === 'CallExpression') {
@@ -693,7 +706,17 @@ export function parseAst (
             if (args.length === 1 && args[0].name === componentClassName) {
               needExportDefault = true
               exportTaroReduxConnected = `${componentClassName}__Connected`
-              astPath.replaceWith(t.variableDeclaration('const', [t.variableDeclarator(t.identifier(`${componentClassName}__Connected`), t.callExpression(declaration.callee as t.Expression, declaration.arguments as Array<t.Expression | t.SpreadElement>))]))
+              astPath.replaceWith(
+                t.variableDeclaration('const', [
+                  t.variableDeclarator(
+                    t.identifier(`${componentClassName}__Connected`),
+                    t.callExpression(
+                      declaration.callee as t.Expression,
+                      declaration.arguments as Array<t.Expression | t.SpreadElement>
+                    )
+                  )
+                ])
+              )
             }
           }
         }
@@ -731,24 +754,28 @@ export function parseAst (
             if (isQuickApp) {
               const node = astPath.node
               if (!hasComponentWillMount) {
-                node.body.push(t.classMethod(
-                  'method', t.identifier('hasComponentWillMount'), [],
-                  t.blockStatement([]), false, false))
+                node.body.push(
+                  t.classMethod('method', t.identifier('hasComponentWillMount'), [], t.blockStatement([]), false, false)
+                )
               }
               if (!hasComponentDidShow) {
-                node.body.push(t.classMethod(
-                  'method', t.identifier('componentDidShow'), [],
-                  t.blockStatement([]), false, false))
+                node.body.push(
+                  t.classMethod('method', t.identifier('componentDidShow'), [], t.blockStatement([]), false, false)
+                )
               }
               if (!hasComponentDidHide) {
-                node.body.push(t.classMethod(
-                  'method', t.identifier('componentDidHide'), [],
-                  t.blockStatement([]), false, false))
+                node.body.push(
+                  t.classMethod('method', t.identifier('componentDidHide'), [], t.blockStatement([]), false, false)
+                )
               }
-              node.body.push(t.classMethod(
-                'method', t.identifier('__listenToSetNavigationBarEvent'), [],
-                t.blockStatement([convertSourceStringToAstExpression(
-                  `if (!Taro.eventCenter.callbacks['TaroEvent:setNavigationBar']) {
+              node.body.push(
+                t.classMethod(
+                  'method',
+                  t.identifier('__listenToSetNavigationBarEvent'),
+                  [],
+                  t.blockStatement([
+                    convertSourceStringToAstExpression(
+                      `if (!Taro.eventCenter.callbacks['TaroEvent:setNavigationBar']) {
                     Taro.eventCenter.on('TaroEvent:setNavigationBar', params => {
                       if (params.title) {
                         this.$scope.$page.setTitleBar({ text: params.title })
@@ -761,20 +788,31 @@ export function parseAst (
                       }
                     })
                   }`
-                )]), false, false))
-              node.body.push(t.classMethod(
-                'method', t.identifier('__offListenToSetNavigationBarEvent'), [],
-                t.blockStatement([convertSourceStringToAstExpression(
-                  `Taro.eventCenter.off('TaroEvent:setNavigationBar')`
-              )]), false, false))
+                    )
+                  ]),
+                  false,
+                  false
+                )
+              )
+              node.body.push(
+                t.classMethod(
+                  'method',
+                  t.identifier('__offListenToSetNavigationBarEvent'),
+                  [],
+                  t.blockStatement([
+                    convertSourceStringToAstExpression("Taro.eventCenter.off('TaroEvent:setNavigationBar')")
+                  ]),
+                  false,
+                  false
+                )
+              )
             }
             if (needSetConfigFromHooks) {
-              const classPath = astPath.findParent((p: NodePath<t.Node>) => p.isClassExpression() || p.isClassDeclaration()) as NodePath<t.ClassDeclaration>
+              const classPath = astPath.findParent(
+                (p: NodePath<t.Node>) => p.isClassExpression() || p.isClassDeclaration()
+              ) as NodePath<t.ClassDeclaration>
               classPath.node.body.body.unshift(
-                t.classProperty(
-                  t.identifier('config'),
-                  configFromHooks as t.ObjectExpression
-                )
+                t.classProperty(t.identifier('config'), configFromHooks as t.ObjectExpression)
               )
             }
           },
@@ -783,9 +821,9 @@ export function parseAst (
               const node = astPath.node
               const keyName = (node.key as t.Identifier).name
               if (keyName === 'componentDidShow' || keyName === 'componentWillMount') {
-                node.body.body.unshift(convertSourceStringToAstExpression(`this.__listenToSetNavigationBarEvent()`))
+                node.body.body.unshift(convertSourceStringToAstExpression('this.__listenToSetNavigationBarEvent()'))
               } else if (keyName === 'componentDidHide') {
-                node.body.body.unshift(convertSourceStringToAstExpression(`this.__offListenToSetNavigationBarEvent()`))
+                node.body.body.unshift(convertSourceStringToAstExpression('this.__offListenToSetNavigationBarEvent()'))
               }
             }
           },
@@ -793,7 +831,16 @@ export function parseAst (
             const node = astPath.node
             const source = node.source
             const value = source.value
-            analyzeImportUrl({ astPath, value, sourceFilePath, filePath, styleFiles, scriptFiles, jsonFiles, mediaFiles })
+            analyzeImportUrl({
+              astPath,
+              value,
+              sourceFilePath,
+              filePath,
+              styleFiles,
+              scriptFiles,
+              jsonFiles,
+              mediaFiles
+            })
           },
           CallExpression (astPath) {
             const node = astPath.node
@@ -850,7 +897,11 @@ export function parseAst (
                     if (scriptFiles.indexOf(fPath) < 0) {
                       scriptFiles.push(fPath)
                     }
-                  } else if (REG_FONT.test(valueExtname) || REG_IMAGE.test(valueExtname) || REG_MEDIA.test(valueExtname)) {
+                  } else if (
+                    REG_FONT.test(valueExtname) ||
+                    REG_IMAGE.test(valueExtname) ||
+                    REG_MEDIA.test(valueExtname)
+                  ) {
                     const vpath = path.resolve(sourceFilePath, '..', value)
                     if (mediaFiles.indexOf(vpath) < 0) {
                       mediaFiles.push(vpath)
@@ -884,7 +935,11 @@ export function parseAst (
                             vpath = path.join(vpath, 'index.js')
                             relativePath = path.join(relativePath, 'index.js')
                           } else {
-                            printLog(processTypeEnum.ERROR, '引用目录', `文件 ${sourceFilePath} 中引用了目录 ${value}！`)
+                            printLog(
+                              processTypeEnum.ERROR,
+                              '引用目录',
+                              `文件 ${sourceFilePath} 中引用了目录 ${value}！`
+                            )
                             return
                           }
                         }
@@ -908,21 +963,23 @@ export function parseAst (
           const exportDefault = template(`export default ${exportVariableName}`, babylonConfig as any)()
           node.body.push(exportDefault as any)
         }
-        const taroMiniAppFrameworkPath = !npmSkip ? getExactedNpmFilePath({
-          npmName: taroMiniAppFramework,
-          sourceFilePath,
-          filePath,
-          isProduction,
-          npmConfig,
-          buildAdapter,
-          root: appPath,
-          npmOutputDir,
-          compileConfig,
-          env: projectConfig.env || {},
-          uglify: projectConfig!.plugins!.uglify || {  enable: true  },
-          babelConfig: getBabelConfig(projectConfig!.plugins!.babel) || {},
-          quickappManifest
-        }) : taroMiniAppFramework
+        const taroMiniAppFrameworkPath = !npmSkip
+          ? getExactedNpmFilePath({
+            npmName: taroMiniAppFramework,
+            sourceFilePath,
+            filePath,
+            isProduction,
+            npmConfig,
+            buildAdapter,
+            root: appPath,
+            npmOutputDir,
+            compileConfig,
+            env: projectConfig.env || {},
+            uglify: projectConfig!.plugins!.uglify || { enable: true },
+            babelConfig: getBabelConfig(projectConfig!.plugins!.babel) || {},
+            quickappManifest
+          })
+          : taroMiniAppFramework
         switch (type) {
           case PARSE_AST_TYPE.ENTRY:
             const pxTransformConfig = {
@@ -933,41 +990,71 @@ export function parseAst (
             }
             if (isQuickApp) {
               if (!taroImportDefaultName) {
-                node.body.unshift(
-                  template(`import Taro from '${taroMiniAppFrameworkPath}'`, babylonConfig as any)() as any
-                )
+                node.body.unshift(template(
+                  `import Taro from '${taroMiniAppFrameworkPath}'`,
+                  babylonConfig as any
+                )() as any)
               }
-              node.body.push(template(`export default require('${taroMiniAppFrameworkPath}').default.createApp(${exportVariableName})`, babylonConfig as any)() as any)
+              node.body.push(template(
+                `export default require('${taroMiniAppFrameworkPath}').default.createApp(${exportVariableName})`,
+                babylonConfig as any
+              )() as any)
             } else {
-              node.body.push(template(`App(require('${taroMiniAppFrameworkPath}').default.createApp(${exportVariableName}))`, babylonConfig as any)() as any)
+              node.body.push(template(
+                `App(require('${taroMiniAppFrameworkPath}').default.createApp(${exportVariableName}))`,
+                babylonConfig as any
+              )() as any)
             }
-            node.body.push(template(`Taro.initPxTransform(${JSON.stringify(pxTransformConfig)})`, babylonConfig as any)() as any)
+            node.body.push(template(
+              `Taro.initPxTransform(${JSON.stringify(pxTransformConfig)})`,
+              babylonConfig as any
+            )() as any)
             break
           case PARSE_AST_TYPE.PAGE:
             if (buildAdapter === BUILD_TYPES.WEAPP || buildAdapter === BUILD_TYPES.QQ) {
-              node.body.push(template(`Component(require('${taroMiniAppFrameworkPath}').default.createComponent(${exportVariableName}, true))`, babylonConfig as any)() as any)
+              node.body.push(template(
+                `Component(require('${taroMiniAppFrameworkPath}').default.createComponent(${exportVariableName}, true))`,
+                babylonConfig as any
+              )() as any)
             } else if (isQuickApp) {
-              const pagePath = sourceFilePath.replace(sourceDir, '').replace(/\\/g, '/').replace(extnameExpRegOf(sourceFilePath), '')
+              const pagePath = sourceFilePath
+                .replace(sourceDir, '')
+                .replace(/\\/g, '/')
+                .replace(extnameExpRegOf(sourceFilePath), '')
               if (!taroImportDefaultName) {
-                node.body.unshift(
-                  template(`import Taro from '${taroMiniAppFrameworkPath}'`, babylonConfig as any)() as any
-                )
+                node.body.unshift(template(
+                  `import Taro from '${taroMiniAppFrameworkPath}'`,
+                  babylonConfig as any
+                )() as any)
               }
-              node.body.push(template(`export default require('${taroMiniAppFrameworkPath}').default.createComponent(${exportVariableName}, '${pagePath}')`, babylonConfig as any)() as any)
+              node.body.push(template(
+                `export default require('${taroMiniAppFrameworkPath}').default.createComponent(${exportVariableName}, '${pagePath}')`,
+                babylonConfig as any
+              )() as any)
             } else {
-              node.body.push(template(`Page(require('${taroMiniAppFrameworkPath}').default.createComponent(${exportVariableName}, true))`, babylonConfig as any)() as any)
+              node.body.push(template(
+                `Page(require('${taroMiniAppFrameworkPath}').default.createComponent(${exportVariableName}, true))`,
+                babylonConfig as any
+              )() as any)
             }
             break
           case PARSE_AST_TYPE.COMPONENT:
             if (isQuickApp) {
               if (!taroImportDefaultName) {
-                node.body.unshift(
-                  template(`import Taro from '${taroMiniAppFrameworkPath}'`, babylonConfig as any)() as any
-                )
+                node.body.unshift(template(
+                  `import Taro from '${taroMiniAppFrameworkPath}'`,
+                  babylonConfig as any
+                )() as any)
               }
-              node.body.push(template(`export default require('${taroMiniAppFrameworkPath}').default.createComponent(${exportVariableName})`, babylonConfig as any)() as any)
+              node.body.push(template(
+                `export default require('${taroMiniAppFrameworkPath}').default.createComponent(${exportVariableName})`,
+                babylonConfig as any
+              )() as any)
             } else {
-              node.body.push(template(`Component(require('${taroMiniAppFrameworkPath}').default.createComponent(${exportVariableName}))`, babylonConfig as any)() as any)
+              node.body.push(template(
+                `Component(require('${taroMiniAppFrameworkPath}').default.createComponent(${exportVariableName}))`,
+                babylonConfig as any
+              )() as any)
             }
             break
           default:
@@ -989,16 +1076,17 @@ export function parseAst (
   }
 }
 
-export function parseComponentExportAst (ast: t.File, componentName: string, componentPath: string, componentType: string): string | null {
-  const {
-    constantsReplaceList
-  } = getBuildData()
+export function parseComponentExportAst (
+  ast: t.File,
+  componentName: string,
+  componentPath: string,
+  componentType: string
+): string | null {
+  const { constantsReplaceList } = getBuildData()
   let componentRealPath: string | null = null
   let importExportName
   ast = babel.transformFromAst(ast, '', {
-    plugins: [
-      [require('babel-plugin-transform-define').default, constantsReplaceList]
-    ]
+    plugins: [[require('babel-plugin-transform-define').default, constantsReplaceList]]
   }).ast as t.File
   traverse(ast, {
     ExportNamedDeclaration (astPath) {

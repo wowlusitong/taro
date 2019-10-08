@@ -1,25 +1,25 @@
 import { IWxTransformResult } from '../util/types'
 
 export interface IComponentObj {
-  name?: string,
-  path: string | null,
-  type?: string
+  name?: string;
+  path: string | null;
+  type?: string;
 }
 
 export interface IIsFileToBeTaroComponentReturn {
-  isTaroComponent: boolean,
-  transformResult: IWxTransformResult
+  isTaroComponent: boolean;
+  transformResult: IWxTransformResult;
 }
 
 export interface IBuildResult {
-  js: string,
-  wxss: string,
-  wxml: string
+  js: string;
+  wxss: string;
+  wxml: string;
 }
 
 export interface IDependency {
-  style: string[],
-  script: string[],
-  json: string[],
-  media: string[]
+  style: string[];
+  script: string[];
+  json: string[];
+  media: string[];
 }

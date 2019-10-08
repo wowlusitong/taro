@@ -44,12 +44,15 @@ export default class BaseComponent {
     this.$prefix = genCompPrefix()
     this.isTaroComponent = this.$componentType && this.$router && this._pendingStates
   }
+
   _constructor (props) {
     this.props = props || {}
   }
+
   _init (scope) {
     this.$scope = scope
   }
+
   setState (state, callback) {
     if (state) {
       (this._pendingStates = this._pendingStates || []).push(state)

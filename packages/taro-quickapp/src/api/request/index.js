@@ -33,7 +33,7 @@ export function request (options = {}) {
 
     // data
     if (methodUpper === 'POST' && typeof data === 'object') {
-      let contentType =
+      const contentType =
         header && (header['Content-Type'] || header['content-type'])
       if (contentType === 'application/json') {
         data = JSON.stringify(data)
@@ -147,7 +147,7 @@ export function downloadFile (options = {}) {
     let { header } = options
     if (typeof header !== 'object') header = {}
 
-    let obj = {
+    const obj = {
       url,
       header,
       description,

@@ -62,8 +62,8 @@ class Image extends Nerv.Component {
     let timer = null
 
     return function () {
-      let context = this
-      let args = arguments
+      const context = this
+      const args = arguments
       clearTimeout(timer)
       timer = setTimeout(function () {
         fn.apply(context, args)
@@ -112,7 +112,7 @@ class Image extends Nerv.Component {
       enumerable: true,
       value: {
         width: this.imgRef.width,
-        height: this.imgRef.height 
+        height: this.imgRef.height
       }
     })
     onLoad && onLoad(e)
@@ -151,7 +151,7 @@ class Image extends Nerv.Component {
       <div className={cls} style={style} {...reset}>
         {lazyLoad ? (
           <img
-            ref={img => this.imgRef = img}
+            ref={img => (this.imgRef = img)}
             className={imgCls}
             data-src={currenSrc}
             onLoad={this.imageOnLoad}
@@ -159,7 +159,7 @@ class Image extends Nerv.Component {
           />
         ) : (
           <img
-            ref={img => this.imgRef = img}
+            ref={img => (this.imgRef = img)}
             className={imgCls}
             src={currenSrc}
             onLoad={this.imageOnLoad}

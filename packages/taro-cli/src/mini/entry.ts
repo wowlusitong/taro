@@ -30,9 +30,7 @@ import { parseAst } from './astProcess'
 import { buildSingleComponent } from './component'
 
 async function buildCustomTabbar () {
-  const {
-    sourceDir
-  } = getBuildData()
+  const { sourceDir } = getBuildData()
   const customTabbarPath = path.join(sourceDir, 'custom-tab-bar')
   const customTabbarJSPath = resolveScriptPath(customTabbarPath)
   await buildSingleComponent({
@@ -42,9 +40,7 @@ async function buildCustomTabbar () {
 }
 
 function buildWorkers (worker: string) {
-  const {
-    sourceDir
-  } = getBuildData()
+  const { sourceDir } = getBuildData()
   printLog(processTypeEnum.COMPILE, 'Workers', '编译 worker 相关文件')
   const workerDir = path.join(sourceDir, worker)
   function fileRecursiveSearch (fileDir) {
@@ -94,7 +90,7 @@ export async function buildEntry (): Promise<AppConfig> {
     isProduction,
     jsxAttributeNameReplace
   } = getBuildData()
-  const weappConf = projectConfig.weapp || { appOutput: true}
+  const weappConf = projectConfig.weapp || { appOutput: true }
   const appOutput = typeof weappConf.appOutput === 'boolean' ? weappConf.appOutput : true
   const entryFileCode = fs.readFileSync(entryFilePath).toString()
   const outputEntryFilePath = path.join(outputDir, entryFileName)
@@ -124,11 +120,7 @@ export async function buildEntry (): Promise<AppConfig> {
     // 处理res.configObj 中的tabBar配置
     const tabBar = res.configObj.tabBar
     if (tabBar && typeof tabBar === 'object' && !isEmptyObject(tabBar)) {
-      const {
-        list: listConfig,
-        iconPath: pathConfig,
-        selectedIconPath: selectedPathConfig
-      } = CONFIG_MAP[buildAdapter]
+      const { list: listConfig, iconPath: pathConfig, selectedIconPath: selectedPathConfig } = CONFIG_MAP[buildAdapter]
       const list = tabBar[listConfig] || []
       let tabBarIcons: string[] = []
       list.forEach(item => {
@@ -142,7 +134,9 @@ export async function buildEntry (): Promise<AppConfig> {
     }
     if (buildAdapter === BUILD_TYPES.QUICKAPP) {
       // 生成 快应用 ux 文件
-      const styleRelativePath = promoteRelativePath(path.relative(outputEntryFilePath, path.join(outputDir, `app${outputFilesTypes.STYLE}`)))
+      const styleRelativePath = promoteRelativePath(
+        path.relative(outputEntryFilePath, path.join(outputDir, `app${outputFilesTypes.STYLE}`))
+      )
       const uxTxt = generateQuickAppUx({
         script: resCode,
         style: styleRelativePath
@@ -171,26 +165,26 @@ export async function buildEntry (): Promise<AppConfig> {
       media: []
     }
     // 编译依赖的脚本文件
-    if (isDifferentArray(fileDep['script'], res.scriptFiles)) {
+    if (isDifferentArray(fileDep.script, res.scriptFiles)) {
       await compileDepScripts(res.scriptFiles, buildAdapter !== BUILD_TYPES.QUICKAPP)
     }
     // 编译样式文件
-    if (isDifferentArray(fileDep['style'], res.styleFiles) && appOutput) {
+    if (isDifferentArray(fileDep.style, res.styleFiles) && appOutput) {
       await compileDepStyles(path.join(outputDir, `app${outputFilesTypes.STYLE}`), res.styleFiles)
       printLog(processTypeEnum.GENERATE, '入口样式', `${outputDirName}/app${outputFilesTypes.STYLE}`)
     }
     // 拷贝依赖文件
-    if (isDifferentArray(fileDep['json'], res.jsonFiles)) {
+    if (isDifferentArray(fileDep.json, res.jsonFiles)) {
       copyFilesFromSrcToOutput(res.jsonFiles)
     }
 
-    if (isDifferentArray(fileDep['media'], res.mediaFiles)) {
+    if (isDifferentArray(fileDep.media, res.mediaFiles)) {
       copyFilesFromSrcToOutput(res.mediaFiles)
     }
-    fileDep['style'] = res.styleFiles
-    fileDep['script'] = res.scriptFiles
-    fileDep['json'] = res.jsonFiles
-    fileDep['media'] = res.mediaFiles
+    fileDep.style = res.styleFiles
+    fileDep.script = res.scriptFiles
+    fileDep.json = res.jsonFiles
+    fileDep.media = res.mediaFiles
     dependencyTree.set(entryFilePath, fileDep)
     return res.configObj
   } catch (err) {

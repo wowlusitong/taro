@@ -83,18 +83,18 @@ export function resolveNpmFilesPath ({
   babelConfig,
   quickappManifest
 }: {
-  pkgName: string,
-  isProduction: boolean,
-  npmConfig: INpmConfig,
-  buildAdapter: BUILD_TYPES,
-  root: string,
-  rootNpm: string,
-  npmOutputDir: string,
-  compileConfig: {[k: string]: any},
-  env: object,
-  uglify: TogglableOptions,
-  babelConfig: object,
-  quickappManifest?: ITaroManifestConfig
+  pkgName: string;
+  isProduction: boolean;
+  npmConfig: INpmConfig;
+  buildAdapter: BUILD_TYPES;
+  root: string;
+  rootNpm: string;
+  npmOutputDir: string;
+  compileConfig: { [k: string]: any };
+  env: object;
+  uglify: TogglableOptions;
+  babelConfig: object;
+  quickappManifest?: ITaroManifestConfig;
 }) {
   if (!resolvedCache[pkgName]) {
     const res = resolveNpmPkgMainPath(pkgName, isProduction, npmConfig, buildAdapter, root)
@@ -138,21 +138,21 @@ function analyzeImportUrl ({
   babelConfig,
   quickappManifest
 }: {
-  requirePath: string,
-  excludeRequire: string[],
-  source: any,
-  filePath: string,
-  files: string[],
-  isProduction: boolean,
-  npmConfig: INpmConfig,
-  rootNpm: string,
-  npmOutputDir: string,
-  buildAdapter: BUILD_TYPES,
-  compileConfig: {[k: string]: any},
-  env: object,
-  uglify: TogglableOptions,
-  babelConfig: object,
-  quickappManifest?: ITaroManifestConfig
+  requirePath: string;
+  excludeRequire: string[];
+  source: any;
+  filePath: string;
+  files: string[];
+  isProduction: boolean;
+  npmConfig: INpmConfig;
+  rootNpm: string;
+  npmOutputDir: string;
+  buildAdapter: BUILD_TYPES;
+  compileConfig: { [k: string]: any };
+  env: object;
+  uglify: TogglableOptions;
+  babelConfig: object;
+  quickappManifest?: ITaroManifestConfig;
 }) {
   if (excludeRequire.indexOf(requirePath) < 0) {
     const quickappPkgs = quickappManifest ? quickappManifest.features : []
@@ -163,8 +163,11 @@ function analyzeImportUrl ({
       if (excludeNpmPkgs.indexOf(requirePath) < 0) {
         const taroMiniAppFramework = `@tarojs/taro-${buildAdapter}`
         excludeReplaceTaroFrameworkPkgs.add(taroMiniAppFramework)
-        if (requirePath === taroJsFramework
-            && (!NODE_MODULES_REG.test(filePath) || !Array.from(excludeReplaceTaroFrameworkPkgs).some(item => filePath.replace(/\\/g, '/').indexOf(item) >= 0))) {
+        if (
+          requirePath === taroJsFramework &&
+          (!NODE_MODULES_REG.test(filePath) ||
+            !Array.from(excludeReplaceTaroFrameworkPkgs).some(item => filePath.replace(/\\/g, '/').indexOf(item) >= 0))
+        ) {
           requirePath = taroMiniAppFramework
         }
         const res = resolveNpmFilesPath({
@@ -236,19 +239,19 @@ function parseAst ({
   babelConfig,
   quickappManifest
 }: {
-  ast: t.File,
-  filePath: string,
-  files: string[],
-  isProduction: boolean,
-  npmConfig: INpmConfig,
-  rootNpm: string,
-  npmOutputDir: string,
-  buildAdapter: BUILD_TYPES,
-  compileConfig: {[k: string]: any},
-  env: object,
-  uglify: TogglableOptions,
-  babelConfig: object,
-  quickappManifest?: ITaroManifestConfig
+  ast: t.File;
+  filePath: string;
+  files: string[];
+  isProduction: boolean;
+  npmConfig: INpmConfig;
+  rootNpm: string;
+  npmOutputDir: string;
+  buildAdapter: BUILD_TYPES;
+  compileConfig: { [k: string]: any };
+  env: object;
+  uglify: TogglableOptions;
+  babelConfig: object;
+  quickappManifest?: ITaroManifestConfig;
 }) {
   const excludeRequire: string[] = []
 
@@ -260,8 +263,10 @@ function parseAst ({
           const left = node.left
           const right = node.right
           if (t.isMemberExpression(left) && t.isStringLiteral(right)) {
-            if (generate(left).code === 'process.env.TARO_ENV' &&
-              (node.right as t.StringLiteral).value !== buildAdapter) {
+            if (
+              generate(left).code === 'process.env.TARO_ENV' &&
+              (node.right as t.StringLiteral).value !== buildAdapter
+            ) {
               const consequentSibling = astPath.getSibling('consequent')
               consequentSibling.traverse({
                 CallExpression (astPath) {
@@ -303,7 +308,9 @@ function parseAst ({
                   } else {
                     objArr = t.objectExpression(convertObjectToAstExpression(obj))
                   }
-                  astPath.replaceWith(t.variableDeclaration('const', [t.variableDeclarator(t.identifier(defaultSpecifier), objArr)]))
+                  astPath.replaceWith(
+                    t.variableDeclaration('const', [t.variableDeclarator(t.identifier(defaultSpecifier), objArr)])
+                  )
                 }
               }
               return
@@ -387,18 +394,18 @@ async function recursiveRequire ({
   babelConfig,
   quickappManifest
 }: {
-  filePath: string,
-  files: string[],
-  isProduction: boolean,
-  npmConfig: INpmConfig,
-  buildAdapter: BUILD_TYPES,
-  rootNpm: string,
-  npmOutputDir: string,
-  compileConfig: {[k: string]: any},
-  env: object,
-  uglify: TogglableOptions,
-  babelConfig: object,
-  quickappManifest?: ITaroManifestConfig
+  filePath: string;
+  files: string[];
+  isProduction: boolean;
+  npmConfig: INpmConfig;
+  buildAdapter: BUILD_TYPES;
+  rootNpm: string;
+  npmOutputDir: string;
+  compileConfig: { [k: string]: any };
+  env: object;
+  uglify: TogglableOptions;
+  babelConfig: object;
+  quickappManifest?: ITaroManifestConfig;
 }) {
   let fileContent = fs.readFileSync(filePath).toString()
   let outputNpmPath = filePath.replace(rootNpm, npmOutputDir).replace(/node_modules/g, npmConfig.name)
@@ -428,9 +435,12 @@ async function recursiveRequire ({
   }
   if (!isNpmInCompileExclude) {
     try {
-      const constantsReplaceList = Object.assign({
-        'process.env.TARO_ENV': buildAdapter
-      }, generateEnvList(env || {}))
+      const constantsReplaceList = Object.assign(
+        {
+          'process.env.TARO_ENV': buildAdapter
+        },
+        generateEnvList(env || {})
+      )
       const transformResult = wxTransformer({
         code: fileContent,
         sourcePath: filePath,
@@ -441,9 +451,7 @@ async function recursiveRequire ({
         env: constantsReplaceList
       })
       const ast = babel.transformFromAst(transformResult.ast, '', {
-        plugins: [
-          [require('babel-plugin-transform-define').default, constantsReplaceList]
-        ]
+        plugins: [[require('babel-plugin-transform-define').default, constantsReplaceList]]
       }).ast as t.File
       fileContent = parseAst({
         ast,
@@ -519,7 +527,7 @@ export function npmCodeHack (filePath: string, content: string, buildAdapter: BU
       }
       break
     case 'mobx.js':
-      // 解决支付宝小程序全局window或global不存在的问题
+    // 解决支付宝小程序全局window或global不存在的问题
       content = content.replace(
         /typeof window\s{0,}!==\s{0,}['"]undefined['"]\s{0,}\?\s{0,}window\s{0,}:\s{0,}global/,
         'typeof window !== "undefined" ? window : typeof global !== "undefined" ? global : {}'

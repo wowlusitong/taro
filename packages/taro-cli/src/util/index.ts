@@ -43,7 +43,7 @@ export function isAliasPath (name: string, pathAlias: object = {}): boolean {
   if (prefixs.length === 0) {
     return false
   }
-  return prefixs.includes(name) || (new RegExp(`^(${prefixs.join('|')})/`).test(name))
+  return prefixs.includes(name) || new RegExp(`^(${prefixs.join('|')})/`).test(name)
 }
 
 export function replaceAliasPath (filePath: string, name: string, pathAlias: object = {}) {
@@ -213,10 +213,10 @@ export function resolveQuickappFilePath (p: string): string {
 }
 
 export function processUxContent (contents, cb) {
-  const reg = /(<script(?:(?=\s)[\s\S]*?["'\s\w\/\-]>|>))([\s\S]*?)(?=<\/script\s*>|$)|(<style(?:(?=\s)[\s\S]*?["'\s\w\/\-]>|>))([\s\S]*?)(?=<\/style\s*>|$)|<(image)\s+[\s\S]*?["'\s\w\/\-](?:>|$)|(<import(?:(?=\s)[\s\S]*?["'\s\w\/\-]>|>))([\s\S]*?)(?=<\/import\s*>|$)/ig;
+  const reg = /(<script(?:(?=\s)[\s\S]*?["'\s\w\/\-]>|>))([\s\S]*?)(?=<\/script\s*>|$)|(<style(?:(?=\s)[\s\S]*?["'\s\w\/\-]>|>))([\s\S]*?)(?=<\/style\s*>|$)|<(image)\s+[\s\S]*?["'\s\w\/\-](?:>|$)|(<import(?:(?=\s)[\s\S]*?["'\s\w\/\-]>|>))([\s\S]*?)(?=<\/import\s*>|$)/gi
   contents = contents.replace(reg, function (m, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10) {
     if ($1) {
-      $1 = $1.replace(/(\ssrc\s*=\s*)('[^']+'|"[^"]+"|[^\s\/>]+)/ig, function (m, prefix, value) {
+      $1 = $1.replace(/(\ssrc\s*=\s*)('[^']+'|"[^"]+"|[^\s\/>]+)/gi, function (m, prefix, value) {
         if (typeof cb === 'function') {
           value = cb(value)
         }
@@ -224,7 +224,7 @@ export function processUxContent (contents, cb) {
       })
       m = $1 + $2
     } else if ($3) {
-      $3 = $3.replace(/(\ssrc\s*=\s*)('[^']+'|"[^"]+"|[^\s\/>]+)/ig, function (m, prefix, value) {
+      $3 = $3.replace(/(\ssrc\s*=\s*)('[^']+'|"[^"]+"|[^\s\/>]+)/gi, function (m, prefix, value) {
         if (typeof cb === 'function') {
           value = cb(value)
         }
@@ -232,14 +232,14 @@ export function processUxContent (contents, cb) {
       })
       m = $3 + $4
     } else if ($5) {
-      m = m.replace(/(src\s*=\s*)('[^']+'|"[^"]+"|[^\s\/>]+)/ig, function (m, prefix, value) {
+      m = m.replace(/(src\s*=\s*)('[^']+'|"[^"]+"|[^\s\/>]+)/gi, function (m, prefix, value) {
         if (typeof cb === 'function') {
           value = cb(value)
         }
         return prefix + value
       })
     } else if ($6) {
-      $6 = $6.replace(/(\ssrc\s*=\s*)('[^']+'|"[^"]+"|[^\s\/>]+)/ig, function (m, prefix, value) {
+      $6 = $6.replace(/(\ssrc\s*=\s*)('[^']+'|"[^"]+"|[^\s\/>]+)/gi, function (m, prefix, value) {
         if (typeof cb === 'function') {
           value = cb(value)
         }
@@ -291,7 +291,11 @@ export function checksum (buf: Buffer | string, length?): string {
   if (!Buffer.isBuffer(buf)) {
     buf = Buffer.from(buf)
   }
-  return crypto.createHash('md5').update(buf).digest('hex').slice(0, length || 8)
+  return crypto
+    .createHash('md5')
+    .update(buf)
+    .digest('hex')
+    .slice(0, length || 8)
 }
 
 export function printLog (type: processTypeEnum, tag: string, filePath?: string) {
@@ -323,7 +327,7 @@ export function replaceContentEnv (content: string, env: object): string {
 }
 
 export function generateEnvList (env: object): object {
-  const res = { }
+  const res = {}
   if (env && !isEmptyObject(env)) {
     for (const key in env) {
       try {
@@ -348,7 +352,7 @@ export function replaceContentConstants (content: string, constants: object): st
 }
 
 export function generateConstantsList (constants: object): object {
-  const res = { }
+  const res = {}
   if (constants && !isEmptyObject(constants)) {
     for (const key in constants) {
       if (isPlainObject(constants[key])) {
@@ -375,7 +379,11 @@ export function cssImports (content: string): string[] {
   return results
 }
 
-export function processStyleImports (content: string, adapter: BUILD_TYPES, processFn: (a: string, b: string) => string) {
+export function processStyleImports (
+  content: string,
+  adapter: BUILD_TYPES,
+  processFn: (a: string, b: string) => string
+) {
   const style: string[] = []
   const imports: string[] = []
   const styleReg = new RegExp(`\\${MINI_APP_FILES[adapter].STYLE}`)
@@ -439,8 +447,8 @@ export function recursiveFindNodeModules (filePath: string): string {
   return recursiveFindNodeModules(dirname)
 }
 
-export const pascalCase: (str: string) => string
-  = (str: string): string => str.charAt(0).toUpperCase() + camelCase(str.substr(1))
+export const pascalCase: (str: string) => string = (str: string): string =>
+  str.charAt(0).toUpperCase() + camelCase(str.substr(1))
 
 export function getInstalledNpmPkgPath (pkgName: string, basedir: string): string | null {
   const resolvePath = require('resolve')
@@ -477,7 +485,7 @@ export function traverseObjectNode (node, buildAdapter: string, parentKey?: stri
   }
   if (node.type === 'ObjectExpression') {
     const properties = node.properties
-    const obj= {}
+    const obj = {}
     properties.forEach(p => {
       let key = t.isIdentifier(p.key) ? p.key.name : p.key.value
       if (CONFIG_MAP[buildAdapter][key] === false) {
@@ -532,11 +540,12 @@ export function copyFiles (appPath: string, copyConfig: ICopyOptions | void) {
             ignore = Array.isArray(ignore) ? ignore : [ignore]
             copyOptions.filter = src => {
               let isMatch = false
-              ignore && ignore.forEach(iPa => {
-                if (minimatch(path.basename(src), iPa)) {
-                  isMatch = true
-                }
-              })
+              ignore &&
+                ignore.forEach(iPa => {
+                  if (minimatch(path.basename(src), iPa)) {
+                    isMatch = true
+                  }
+                })
               return !isMatch
             }
           }
@@ -558,7 +567,11 @@ export function isQuickappPkg (name: string, quickappPkgs: any[] = []): boolean 
     }
   })
   if (isQuickappPkg && !hasSetInManifest) {
-    printLog(processTypeEnum.ERROR, '快应用', `需要在 ${chalk.bold('project.quickapp.json')} 文件的 ${chalk.bold('features')} 配置中添加 ${chalk.bold(name)}`)
+    printLog(
+      processTypeEnum.ERROR,
+      '快应用',
+      `需要在 ${chalk.bold('project.quickapp.json')} 文件的 ${chalk.bold('features')} 配置中添加 ${chalk.bold(name)}`
+    )
   }
   return isQuickappPkg
 }
@@ -569,13 +582,13 @@ export function generateQuickAppUx ({
   style,
   imports
 }: {
-  script?: string,
-  template?: string,
-  style?: string,
+  script?: string;
+  template?: string;
+  style?: string;
   imports?: Set<{
-    path: string,
-    name: string
-  }>
+    path: string;
+    name: string;
+  }>;
 }) {
   let uxTxt = ''
   if (imports && imports.size) {
@@ -663,7 +676,7 @@ export function unzip (zipPath) {
         resolve()
       })
       zipfile.readEntry()
-      zipfile.on('error', (err) => {
+      zipfile.on('error', err => {
         reject(err)
       })
       zipfile.on('entry', entry => {
@@ -689,9 +702,7 @@ export function unzip (zipPath) {
             const fileName = fileNameArr.join('/')
             const writeStream = fs.createWriteStream(path.join(path.dirname(zipPath), fileName))
             writeStream.on('close', () => {})
-            readStream
-              .pipe(filter)
-              .pipe(writeStream)
+            readStream.pipe(filter).pipe(writeStream)
           })
         }
       })
@@ -727,10 +738,7 @@ export function uglifyJS (resCode: string, filePath: string, root: string, uglif
   return resCode
 }
 
-export const getAllFilesInFloder = async (
-  floder: string,
-  filter: string[] = []
-): Promise<string[]> => {
+export const getAllFilesInFloder = async (floder: string, filter: string[] = []): Promise<string[]> => {
   let files: string[] = []
   const list = readDirWithFileTypes(floder)
 
@@ -750,7 +758,7 @@ export const getAllFilesInFloder = async (
 }
 
 export function getUserHomeDir (): string {
-  function homedir(): string {
+  function homedir (): string {
     const env = process.env
     const home = env.HOME
     const user = env.LOGNAME || env.USER || env.LNAME || env.USERNAME
@@ -764,7 +772,7 @@ export function getUserHomeDir (): string {
     }
 
     if (process.platform === 'linux') {
-      return home || (process.getuid() === 0 ? '/root' : (user ? '/home/' + user : ''))
+      return home || (process.getuid() === 0 ? '/root' : user ? '/home/' + user : '')
     }
 
     return home || ''
@@ -783,15 +791,15 @@ export function getTemplateSourceType (url: string): TemplateSourceType {
 }
 
 interface FileStat {
-  name: string
-  isDirectory: boolean
-  isFile: boolean
+  name: string;
+  isDirectory: boolean;
+  isFile: boolean;
 }
 
 export function readDirWithFileTypes (floder: string): FileStat[] {
   const list = fs.readdirSync(floder)
   const res = list.map(name => {
-    const stat =fs.statSync(path.join(floder, name))
+    const stat = fs.statSync(path.join(floder, name))
     return {
       name,
       isDirectory: stat.isDirectory(),

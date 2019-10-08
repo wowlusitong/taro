@@ -12,11 +12,7 @@ import {
   isWindows,
   BUILD_TYPES
 } from '../util/constants'
-import {
-  printLog,
-  checksum,
-  extnameExpRegOf
-} from '../util'
+import { printLog, checksum, extnameExpRegOf } from '../util'
 
 import { initCompileStyles, compileDepStyles } from './compileStyle'
 import { initCompileScripts, compileDepScripts } from './compileScript'
@@ -79,20 +75,25 @@ export function watchFiles () {
           printLog(processTypeEnum.MODIFY, '入口文件', `${sourceDirName}/${entryFileName}.js`)
           const config = await buildEntry()
           // TODO 此处待优化
-          if ((checksum(JSON.stringify(config.pages)) !== checksum(JSON.stringify(appConfig.pages))) ||
-            (checksum(JSON.stringify(config.subPackages || config['subpackages'] || {})) !== checksum(JSON.stringify(appConfig.subPackages || appConfig['subpackages'] || {})))) {
+          if (
+            checksum(JSON.stringify(config.pages)) !== checksum(JSON.stringify(appConfig.pages)) ||
+            checksum(JSON.stringify(config.subPackages || config.subpackages || {})) !==
+              checksum(JSON.stringify(appConfig.subPackages || appConfig.subpackages || {}))
+          ) {
             setAppConfig(config)
             await buildPages()
           }
         } else {
           const filePathWithoutExt = filePath.replace(extname, '')
-          if (isFileToBePage(filePath)) { // 编译页面
+          if (isFileToBePage(filePath)) {
+            // 编译页面
             filePath = filePathWithoutExt
             filePath = filePath.replace(path.join(sourceDir) + path.sep, '')
             filePath = filePath.split(path.sep).join('/')
             printLog(processTypeEnum.MODIFY, '页面文件', `${sourceDirName}/${filePath}`)
             await buildSinglePage(filePath)
-          } else if (isComponentHasBeenBuilt(filePath)) { // 编译组件
+          } else if (isComponentHasBeenBuilt(filePath)) {
+            // 编译组件
             let outoutShowFilePath = filePath.replace(appPath + path.sep, '')
             outoutShowFilePath = outoutShowFilePath.split(path.sep).join('/')
             printLog(processTypeEnum.MODIFY, '组件文件', outoutShowFilePath)
@@ -101,20 +102,30 @@ export function watchFiles () {
             if (isWindows) {
               await new Promise((resolve, reject) => {
                 setTimeout(async () => {
-                  await buildSingleComponent(Object.assign({
-                    path: filePath
-                  }, componentsNamedMap.get(filePath)))
+                  await buildSingleComponent(
+                    Object.assign(
+                      {
+                        path: filePath
+                      },
+                      componentsNamedMap.get(filePath)
+                    )
+                  )
                   resolve()
                 }, 300)
               })
             } else {
-              await buildSingleComponent(Object.assign({
-                path: filePath
-              }, componentsNamedMap.get(filePath)))
+              await buildSingleComponent(
+                Object.assign(
+                  {
+                    path: filePath
+                  },
+                  componentsNamedMap.get(filePath)
+                )
+              )
             }
           } else {
             let isImported = false
-            dependencyTree.forEach((dependencyTreeItem) => {
+            dependencyTree.forEach(dependencyTreeItem => {
               if (dependencyTreeItem) {
                 const scripts = dependencyTreeItem.script
                 if (scripts.indexOf(filePath) >= 0) {
@@ -135,7 +146,7 @@ export function watchFiles () {
       } else if (REG_STYLE.test(extname)) {
         const includeStyleJSPath: any[] = []
         dependencyTree.forEach((dependencyTreeItem, key) => {
-          const styles = dependencyTreeItem['style'] || []
+          const styles = dependencyTreeItem.style || []
           styles.forEach(item => {
             if (item === filePath) {
               includeStyleJSPath.push({

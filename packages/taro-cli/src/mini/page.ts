@@ -75,7 +75,9 @@ export async function buildSinglePage (page: string) {
     return
   }
   const pageJsContent = fs.readFileSync(pageJs).toString()
-  const outputPageJSPath = pageJs.replace(sourceDir, outputDir).replace(extnameExpRegOf(pageJs), outputFilesTypes.SCRIPT)
+  const outputPageJSPath = pageJs
+    .replace(sourceDir, outputDir)
+    .replace(extnameExpRegOf(pageJs), outputFilesTypes.SCRIPT)
   const outputPagePath = path.dirname(outputPageJSPath)
   const outputPageJSONPath = outputPageJSPath.replace(extnameExpRegOf(outputPageJSPath), outputFilesTypes.CONFIG)
   const outputPageWXMLPath = outputPageJSPath.replace(extnameExpRegOf(outputPageJSPath), outputFilesTypes.TEMPL)
@@ -168,21 +170,28 @@ export async function buildSinglePage (page: string) {
     } else {
       // 快应用编译，搜集创建页面 ux 文件
       const importTaroSelfComponents = getImportTaroSelfComponents(outputPageJSPath, res.taroSelfComponents)
-      const importCustomComponents = new Set(realComponentsPathList.map(item => {
-        return {
-          path: promoteRelativePath(path.relative(pageJs, item.path as string)).replace(extnameExpRegOf(item.path as string), ''),
-          name: item.name as string
-        }
-      }))
+      const importCustomComponents = new Set(
+        realComponentsPathList.map(item => {
+          return {
+            path: promoteRelativePath(path.relative(pageJs, item.path as string)).replace(
+              extnameExpRegOf(item.path as string),
+              ''
+            ),
+            name: item.name as string
+          }
+        })
+      )
       const usingComponents = res.configObj.usingComponents
       let importUsingComponent: any = new Set([])
       if (usingComponents) {
-        importUsingComponent = new Set(Object.keys(usingComponents).map(item => {
-          return {
-            name: item,
-            path: usingComponents[item]
-          }
-        }))
+        importUsingComponent = new Set(
+          Object.keys(usingComponents).map(item => {
+            return {
+              name: item,
+              path: usingComponents[item]
+            }
+          })
+        )
       }
       // 生成页面 ux 文件
       let styleRelativePath
@@ -200,16 +209,18 @@ export async function buildSinglePage (page: string) {
     }
     // 编译依赖的组件文件
     if (realComponentsPathList.length) {
-      res.scriptFiles = res.scriptFiles.map(item => {
-        for (let i = 0; i < realComponentsPathList.length; i++) {
-          const componentObj = realComponentsPathList[i]
-          const componentPath = componentObj.path
-          if (item === componentPath) {
-            return ''
+      res.scriptFiles = res.scriptFiles
+        .map(item => {
+          for (let i = 0; i < realComponentsPathList.length; i++) {
+            const componentObj = realComponentsPathList[i]
+            const componentPath = componentObj.path
+            if (item === componentPath) {
+              return ''
+            }
           }
-        }
-        return item
-      }).filter(item => item)
+          return item
+        })
+        .filter(item => item)
       await buildDepComponents(realComponentsPathList)
     }
     const componentExportsMap = getComponentExportsMap()
@@ -217,21 +228,22 @@ export async function buildSinglePage (page: string) {
       realComponentsPathList.forEach(component => {
         if (componentExportsMap.has(component.path as string)) {
           const componentMap = componentExportsMap.get(component.path as string)
-          componentMap && componentMap.forEach(component => {
-            pageDepComponents.forEach(depComponent => {
-              if (depComponent.name === component.name) {
-                let componentPath = component.path
-                let realPath
-                if (NODE_MODULES_REG.test(componentPath as string)) {
-                  componentPath = (componentPath as string).replace(nodeModulesPath, npmOutputDir)
-                  realPath = promoteRelativePath(path.relative(outputPageJSPath, componentPath))
-                } else {
-                  realPath = promoteRelativePath(path.relative(pageJs, componentPath as string))
+          componentMap &&
+            componentMap.forEach(component => {
+              pageDepComponents.forEach(depComponent => {
+                if (depComponent.name === component.name) {
+                  let componentPath = component.path
+                  let realPath
+                  if (NODE_MODULES_REG.test(componentPath as string)) {
+                    componentPath = (componentPath as string).replace(nodeModulesPath, npmOutputDir)
+                    realPath = promoteRelativePath(path.relative(outputPageJSPath, componentPath))
+                  } else {
+                    realPath = promoteRelativePath(path.relative(pageJs, componentPath as string))
+                  }
+                  depComponent.path = realPath.replace(extnameExpRegOf(realPath), '')
                 }
-                depComponent.path = realPath.replace(extnameExpRegOf(realPath), '')
-              }
+              })
             })
-          })
         }
       })
     }
@@ -242,7 +254,10 @@ export async function buildSinglePage (page: string) {
       media: []
     }
     if (!isQuickApp) {
-      fs.writeFileSync(outputPageJSONPath, JSON.stringify(_.merge({}, buildUsingComponents(pageJs, pageDepComponents), res.configObj), null, 2))
+      fs.writeFileSync(
+        outputPageJSONPath,
+        JSON.stringify(_.merge({}, buildUsingComponents(pageJs, pageDepComponents), res.configObj), null, 2)
+      )
       printLog(processTypeEnum.GENERATE, '页面配置', `${outputDirName}/${page}${outputFilesTypes.CONFIG}`)
       fs.writeFileSync(outputPageJSPath, resCode)
       printLog(processTypeEnum.GENERATE, '页面逻辑', `${outputDirName}/${page}${outputFilesTypes.SCRIPT}`)
@@ -251,26 +266,29 @@ export async function buildSinglePage (page: string) {
       printLog(processTypeEnum.GENERATE, '页面模板', `${outputDirName}/${page}${outputFilesTypes.TEMPL}`)
     }
     // 编译依赖的脚本文件
-    if (isDifferentArray(fileDep['script'], res.scriptFiles)) {
+    if (isDifferentArray(fileDep.script, res.scriptFiles)) {
       await compileDepScripts(res.scriptFiles, !isQuickApp)
     }
     // 编译样式文件
-    if (isDifferentArray(fileDep['style'], res.styleFiles) || isDifferentArray(depComponents.get(pageJs) || [], pageDepComponents)) {
+    if (
+      isDifferentArray(fileDep.style, res.styleFiles) ||
+      isDifferentArray(depComponents.get(pageJs) || [], pageDepComponents)
+    ) {
       printLog(processTypeEnum.GENERATE, '页面样式', `${outputDirName}/${page}${outputFilesTypes.STYLE}`)
       await compileDepStyles(outputPageWXSSPath, res.styleFiles)
     }
     // 拷贝依赖文件
-    if (isDifferentArray(fileDep['json'], res.jsonFiles)) {
+    if (isDifferentArray(fileDep.json, res.jsonFiles)) {
       copyFilesFromSrcToOutput(res.jsonFiles)
     }
-    if (isDifferentArray(fileDep['media'], res.mediaFiles)) {
+    if (isDifferentArray(fileDep.media, res.mediaFiles)) {
       copyFilesFromSrcToOutput(res.mediaFiles)
     }
     depComponents.set(pageJs, pageDepComponents)
-    fileDep['style'] = res.styleFiles
-    fileDep['script'] = res.scriptFiles
-    fileDep['json'] = res.jsonFiles
-    fileDep['media'] = res.mediaFiles
+    fileDep.style = res.styleFiles
+    fileDep.script = res.scriptFiles
+    fileDep.json = res.jsonFiles
+    fileDep.media = res.mediaFiles
     dependencyTree.set(pageJs, fileDep)
   } catch (err) {
     printLog(processTypeEnum.ERROR, '页面编译', `页面${pagePath}编译失败！`)
@@ -283,7 +301,7 @@ export async function buildPages () {
   const { appConfig } = getBuildData()
   // 支持分包，解析子包页面
   const pages = appConfig.pages || []
-  const subPackages = appConfig.subPackages || appConfig['subpackages']
+  const subPackages = appConfig.subPackages || appConfig.subpackages
   if (subPackages && subPackages.length) {
     subPackages.forEach(item => {
       if (item.pages && item.pages.length) {

@@ -1,19 +1,16 @@
-import * as autoprefixer from 'autoprefixer';
-import * as path from 'path';
-import * as constparse from 'postcss-plugin-constparse';
-import * as pxtransform from 'postcss-pxtransform';
-import { sync as resolveSync } from 'resolve';
-import { isNpmPackage, recursiveMerge } from '../util';
+import * as autoprefixer from 'autoprefixer'
+import * as path from 'path'
+import * as constparse from 'postcss-plugin-constparse'
+import * as pxtransform from 'postcss-pxtransform'
+import { sync as resolveSync } from 'resolve'
+import { isNpmPackage, recursiveMerge } from '../util'
 
-import { PostcssOption } from '../util/types';
+import { PostcssOption } from '../util/types'
 
 const defaultAutoprefixerOption = {
   enable: true,
   config: {
-    browsers: [
-      'Android >= 4',
-      'iOS >= 6'
-    ],
+    browsers: ['Android >= 4', 'iOS >= 6'],
     flexbox: 'no-2009'
   }
 }
@@ -30,10 +27,12 @@ const defaultPxtransformOption: {
 //   config: {}
 // }
 const defaultConstparseOption = {
-  constants: [{
-    key: 'taro-tabbar-height',
-    val: '50PX'
-  }],
+  constants: [
+    {
+      key: 'taro-tabbar-height',
+      val: '50PX'
+    }
+  ],
   platform: 'h5'
 }
 
@@ -41,12 +40,10 @@ const optionsWithDefaults = ['autoprefixer', 'pxtransform', 'cssModules']
 
 const plugins = [] as any[]
 
-export const getPostcssPlugins = function (appPath: string, {
-  designWidth,
-  deviceRatio,
-  postcssOption = {} as PostcssOption
-}) {
-
+export const getPostcssPlugins = function (
+  appPath: string,
+  { designWidth, deviceRatio, postcssOption = {} as PostcssOption }
+) {
   if (designWidth) {
     defaultPxtransformOption.config.designWidth = designWidth
   }
@@ -77,7 +74,8 @@ export const getPostcssPlugins = function (appPath: string, {
     if (optionsWithDefaults.indexOf(pluginName) > -1) return
     if (!pluginOption || !pluginOption.enable) return
 
-    if (!isNpmPackage(pluginName)) { // local plugin
+    if (!isNpmPackage(pluginName)) {
+      // local plugin
       pluginName = path.join(appPath, pluginName)
     }
 

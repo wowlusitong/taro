@@ -1,6 +1,6 @@
-import * as path from 'path';
+import * as path from 'path'
 
-import { addTrailingSlash, emptyObj } from '../util';
+import { addTrailingSlash, emptyObj } from '../util'
 import {
   getCopyWebpackPlugin,
   getCssoWebpackPlugin,
@@ -13,9 +13,9 @@ import {
   getOutput,
   getUglifyPlugin,
   processEnvOption
-} from '../util/chain';
-import { BuildConfig } from '../util/types';
-import getBaseChain from './base.conf';
+} from '../util/chain'
+import { BuildConfig } from '../util/types'
+import getBaseChain from './base.conf'
 
 export default function (appPath: string, config: Partial<BuildConfig>): any {
   const chain = getBaseChain(appPath)
@@ -60,26 +60,29 @@ export default function (appPath: string, config: Partial<BuildConfig>): any {
   const plugin: any = {}
 
   if (enableExtract) {
-    plugin.miniCssExtractPlugin = getMiniCssExtractPlugin([{
-      filename: 'css/[name].css',
-      chunkFilename: 'css/[name].css'
-    }, miniCssExtractPluginOption])
+    plugin.miniCssExtractPlugin = getMiniCssExtractPlugin([
+      {
+        filename: 'css/[name].css',
+        chunkFilename: 'css/[name].css'
+      },
+      miniCssExtractPluginOption
+    ])
   }
 
   if (copy) {
     plugin.copyWebpackPlugin = getCopyWebpackPlugin({ copy, appPath })
   }
 
-  plugin.htmlWebpackPlugin = getHtmlWebpackPlugin([{
-    filename: 'index.html',
-    template: path.join(appPath, sourceRoot, 'index.html')
-  }])
+  plugin.htmlWebpackPlugin = getHtmlWebpackPlugin([
+    {
+      filename: 'index.html',
+      template: path.join(appPath, sourceRoot, 'index.html')
+    }
+  ])
 
   plugin.definePlugin = getDefinePlugin([processEnvOption(env), defineConstants])
 
-  const isCssoEnabled = (plugins.csso && plugins.csso.enable === false)
-    ? false
-    : true
+  const isCssoEnabled = !(plugins.csso && plugins.csso.enable === false)
 
   if (isCssoEnabled) {
     plugin.cssoWebpackPlugin = getCssoWebpackPlugin([plugins.csso ? plugins.csso.config : {}])
@@ -88,33 +91,31 @@ export default function (appPath: string, config: Partial<BuildConfig>): any {
   const mode = 'production'
 
   const minimizer: any[] = []
-  const isUglifyEnabled = (plugins.uglify && plugins.uglify.enable === false)
-    ? false
-    : true
+  const isUglifyEnabled = !(plugins.uglify && plugins.uglify.enable === false)
 
   if (isUglifyEnabled) {
-    minimizer.push(getUglifyPlugin([
-      enableSourceMap,
-      plugins.uglify ? plugins.uglify.config : {}
-    ]))
+    minimizer.push(getUglifyPlugin([enableSourceMap, plugins.uglify ? plugins.uglify.config : {}]))
   }
 
   chain.merge({
     mode,
     devtool: getDevtool(enableSourceMap),
     entry: getEntry(entry),
-    output: getOutput(appPath, [{
-      outputRoot,
-      publicPath: addTrailingSlash(publicPath),
-      chunkDirectory
-    }, output]),
+    output: getOutput(appPath, [
+      {
+        outputRoot,
+        publicPath: addTrailingSlash(publicPath),
+        chunkDirectory
+      },
+      output
+    ]),
     resolve: { alias },
     module: getModule(appPath, {
       designWidth,
       deviceRatio,
       enableExtract,
       enableSourceMap,
-  
+
       styleLoaderOption,
       cssLoaderOption,
       lessLoaderOption,
@@ -124,7 +125,7 @@ export default function (appPath: string, config: Partial<BuildConfig>): any {
       imageUrlLoaderOption,
       mediaUrlLoaderOption,
       esnextModules,
-  
+
       module,
       plugins,
       staticDirectory

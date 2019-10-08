@@ -1,5 +1,5 @@
 import * as path from 'path'
-import { mergeWith } from 'lodash';
+import { mergeWith } from 'lodash'
 
 const isEmptyObject = function (obj) {
   if (obj == null) {
@@ -58,8 +58,8 @@ const recursiveMerge = (src, ...args) => {
 
 const isNpmPackage = (name: string) => !/^(\.|\/)/.test(name)
 
-const addLeadingSlash = (url: string) => url.charAt(0) === '/' ? url : '/' + url
-const addTrailingSlash = (url: string) => url.charAt(url.length - 1) === '/' ? url : url + '/'
+const addLeadingSlash = (url: string) => (url.charAt(0) === '/' ? url : '/' + url)
+const addTrailingSlash = (url: string) => (url.charAt(url.length - 1) === '/' ? url : url + '/')
 
 export {
   emptyObj,

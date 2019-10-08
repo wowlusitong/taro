@@ -1,5 +1,4 @@
 import * as path from 'path'
-import * as _ from 'lodash'
 import { CLIEngine } from 'eslint'
 
 const ESLINT_CONFIG_PATH = path.join(__dirname, 'validatorEslintrc.js')

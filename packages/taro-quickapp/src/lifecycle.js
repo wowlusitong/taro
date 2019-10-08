@@ -173,7 +173,7 @@ function doUpdate (component, prevProps, prevState) {
     })
     data = _data
   }
-  data['priTaroCompReady'] = true
+  data.priTaroCompReady = true
 
   const __mounted = component.__mounted
   let snapshot
@@ -197,7 +197,7 @@ function doUpdate (component, prevProps, prevState) {
 
   if (__mounted) {
     invokeEffects(component)
-    if (component['$$hasLoopRef']) {
+    if (component.$$hasLoopRef) {
       Current.current = component
       component._disableEffect = true
       component._createData(component.state, component.props, true)

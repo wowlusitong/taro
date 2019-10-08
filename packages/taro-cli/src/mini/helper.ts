@@ -34,20 +34,10 @@ import {
   extnameExpRegOf
 } from '../util'
 import { resolveNpmPkgMainPath } from '../util/resolve_npm_files'
-import {
-  IProjectConfig,
-  IOption,
-  INpmConfig,
-  IWxTransformResult,
-  ITaroManifestConfig
-} from '../util/types'
+import { IProjectConfig, IOption, INpmConfig, IWxTransformResult, ITaroManifestConfig } from '../util/types'
 import CONFIG from '../config'
 
-import {
-  IComponentObj,
-  IBuildResult,
-  IDependency
-} from './interface'
+import { IComponentObj, IBuildResult, IDependency } from './interface'
 import { getNpmOutputDir } from '../util/npmExact'
 import { parseAst } from './astProcess'
 
@@ -58,31 +48,31 @@ const componentExportsMap = new Map<string, IComponentObj[]>()
 const depComponents = new Map<string, IComponentObj[]>()
 
 export interface IBuildData {
-  appPath: string,
-  configDir: string,
-  sourceDirName: string,
-  outputDirName: string,
-  sourceDir: string,
-  outputDir: string,
-  originalOutputDir: string,
-  entryFilePath: string,
-  entryFileName: string,
-  projectConfig: IProjectConfig,
-  npmConfig: INpmConfig,
-  appConfig: Config,
-  pageConfigs: Map<string, Config>,
-  alias: IOption,
-  compileConfig: {[k: string]: any},
-  isProduction: boolean,
-  buildAdapter: BUILD_TYPES,
-  outputFilesTypes: IMINI_APP_FILE_TYPE,
-  constantsReplaceList: IOption,
-  nodeModulesPath: string,
-  npmOutputDir: string,
+  appPath: string;
+  configDir: string;
+  sourceDirName: string;
+  outputDirName: string;
+  sourceDir: string;
+  outputDir: string;
+  originalOutputDir: string;
+  entryFilePath: string;
+  entryFileName: string;
+  projectConfig: IProjectConfig;
+  npmConfig: INpmConfig;
+  appConfig: Config;
+  pageConfigs: Map<string, Config>;
+  alias: IOption;
+  compileConfig: { [k: string]: any };
+  isProduction: boolean;
+  buildAdapter: BUILD_TYPES;
+  outputFilesTypes: IMINI_APP_FILE_TYPE;
+  constantsReplaceList: IOption;
+  nodeModulesPath: string;
+  npmOutputDir: string;
   jsxAttributeNameReplace?: {
-    [key: string]: any
-  },
-  quickappManifest?: ITaroManifestConfig
+    [key: string]: any;
+  };
+  quickappManifest?: ITaroManifestConfig;
 }
 
 let BuildData: IBuildData
@@ -120,10 +110,13 @@ export function setBuildData (appPath: string, adapter: BUILD_TYPES): IBuildData
 
   const pathAlias = projectConfig.alias || {}
   const weappConf = projectConfig.weapp || {}
-  const npmConfig = Object.assign({
-    name: CONFIG.NPM_DIR,
-    dir: null
-  }, weappConf.npm)
+  const npmConfig = Object.assign(
+    {
+      name: CONFIG.NPM_DIR,
+      dir: null
+    },
+    weappConf.npm
+  )
   const useCompileConf = Object.assign({}, weappConf.compile)
   BuildData = {
     appPath,
@@ -144,16 +137,25 @@ export function setBuildData (appPath: string, adapter: BUILD_TYPES): IBuildData
     compileConfig: useCompileConf,
     buildAdapter: adapter,
     outputFilesTypes: MINI_APP_FILES[adapter],
-    constantsReplaceList: Object.assign({}, generateEnvList(projectConfig.env || {}), generateConstantsList(projectConfig.defineConstants || {}), {
-      'process.env.TARO_ENV': adapter
-    }),
+    constantsReplaceList: Object.assign(
+      {},
+      generateEnvList(projectConfig.env || {}),
+      generateConstantsList(projectConfig.defineConstants || {}),
+      {
+        'process.env.TARO_ENV': adapter
+      }
+    ),
     nodeModulesPath: recursiveFindNodeModules(path.join(appPath, NODE_MODULES)),
     npmOutputDir: getNpmOutputDir(outputDir, configDir, npmConfig),
     jsxAttributeNameReplace: weappConf.jsxAttributeNameReplace || {}
   }
   // 可以自定义输出文件类型
   if (weappConf!.customFilesTypes && !isEmptyObject(weappConf!.customFilesTypes)) {
-    BuildData.outputFilesTypes = Object.assign({}, BuildData.outputFilesTypes, weappConf!.customFilesTypes[adapter] || {})
+    BuildData.outputFilesTypes = Object.assign(
+      {},
+      BuildData.outputFilesTypes,
+      weappConf!.customFilesTypes[adapter] || {}
+    )
   }
   if (adapter === BUILD_TYPES.QUICKAPP) {
     BuildData.originalOutputDir = BuildData.outputDir
@@ -207,11 +209,7 @@ export function getDepComponents (): Map<string, IComponentObj[]> {
   return depComponents
 }
 
-export function buildUsingComponents (
-  filePath: string,
-  components: IComponentObj[],
-  isComponent?: boolean
-): IOption {
+export function buildUsingComponents (filePath: string, components: IComponentObj[], isComponent?: boolean): IOption {
   const usingComponents = Object.create(null)
   const pathAlias = BuildData.projectConfig.alias || {}
   for (const component of components) {
@@ -229,41 +227,56 @@ export function buildUsingComponents (
       usingComponents[component.name] = (componentPath as string).replace(extnameExpRegOf(componentPath as string), '')
     }
   }
-  return Object.assign({}, isComponent ? { component: true } : { usingComponents: {} }, components.length ? {
-    usingComponents
-  } : {})
+  return Object.assign(
+    {},
+    isComponent ? { component: true } : { usingComponents: {} },
+    components.length
+      ? {
+        usingComponents
+      }
+      : {}
+  )
 }
 
-export function getRealComponentsPathList (
-  filePath: string,
-  components: IComponentObj[]
-): IComponentObj[] {
+export function getRealComponentsPathList (filePath: string, components: IComponentObj[]): IComponentObj[] {
   const { appPath, isProduction, buildAdapter, projectConfig, npmConfig } = BuildData
   const pathAlias = projectConfig.alias || {}
-  return components.length ? components.map(component => {
-    let componentPath = component.path
-    if (isAliasPath(componentPath as string, pathAlias)) {
-      componentPath = replaceAliasPath(filePath, componentPath as string, pathAlias)
-    }
-    if (isNpmPkg(componentPath as string)) {
-      try {
-        componentPath = resolveNpmPkgMainPath(componentPath as string, isProduction, npmConfig, buildAdapter, appPath)
-      } catch (err) {
-        console.log(err)
+  return components.length
+    ? components.map(component => {
+      let componentPath = component.path
+      if (isAliasPath(componentPath as string, pathAlias)) {
+        componentPath = replaceAliasPath(filePath, componentPath as string, pathAlias)
       }
-    } else {
-      componentPath = path.resolve(path.dirname(filePath), componentPath as string)
-      componentPath = resolveScriptPath(componentPath)
-    }
-    if (componentPath && isFileToBePage(componentPath)) {
-      printLog(processTypeEnum.ERROR, '组件引用', `文件${component.path}已经在 app.js 中被指定为页面，不能再作为组件来引用！`)
-    }
-    return {
-      path: componentPath,
-      name: component.name,
-      type: component.type
-    }
-  }) : []
+      if (isNpmPkg(componentPath as string)) {
+        try {
+          componentPath = resolveNpmPkgMainPath(
+            componentPath as string,
+            isProduction,
+            npmConfig,
+            buildAdapter,
+            appPath
+          )
+        } catch (err) {
+          console.log(err)
+        }
+      } else {
+        componentPath = path.resolve(path.dirname(filePath), componentPath as string)
+        componentPath = resolveScriptPath(componentPath)
+      }
+      if (componentPath && isFileToBePage(componentPath)) {
+        printLog(
+          processTypeEnum.ERROR,
+          '组件引用',
+          `文件${component.path}已经在 app.js 中被指定为页面，不能再作为组件来引用！`
+        )
+      }
+      return {
+        path: componentPath,
+        name: component.name,
+        type: component.type
+      }
+    })
+    : []
 }
 
 export function isFileToBePage (filePath: string): boolean {
@@ -280,10 +293,7 @@ export function isFileToBePage (filePath: string): boolean {
   return isPage && REG_SCRIPTS.test(extname)
 }
 
-export function getDepStyleList (
-  outputFilePath: string,
-  buildDepComponentsResult: IBuildResult[]
-): string[] {
+export function getDepStyleList (outputFilePath: string, buildDepComponentsResult: IBuildResult[]): string[] {
   const { sourceDir, outputDir } = BuildData
   let depWXSSList: string[] = []
   if (buildDepComponentsResult.length) {
@@ -301,7 +311,10 @@ export function initCopyFiles () {
   isCopyingFiles.clear()
 }
 
-export function copyFilesFromSrcToOutput (files: string[], cb?: (sourceFilePath: string, outputFilePath: string) => void) {
+export function copyFilesFromSrcToOutput (
+  files: string[],
+  cb?: (sourceFilePath: string, outputFilePath: string) => void
+) {
   const { nodeModulesPath, npmOutputDir, sourceDir, outputDir, appPath, projectConfig } = BuildData
   const adapterConfig = Object.assign({}, projectConfig.weapp)
   files.forEach(file => {
@@ -354,7 +367,7 @@ export function getTaroJsQuickAppComponentsPath () {
 const SCRIPT_CONTENT_REG = /<script\b[^>]*>([\s\S]*?)<\/script>/gm
 
 export function getImportTaroSelfComponents (filePath, taroSelfComponents) {
-  const importTaroSelfComponents = new Set<{ path: string, name: string }>()
+  const importTaroSelfComponents = new Set<{ path: string; name: string }>()
   const taroJsQuickAppComponentsPath = getTaroJsQuickAppComponentsPath()
   taroSelfComponents.forEach(c => {
     const cPath = path.join(taroJsQuickAppComponentsPath, c)
@@ -382,7 +395,9 @@ export function getImportTaroSelfComponents (filePath, taroSelfComponents) {
         }
       }
     })
-    const cRelativePath = promoteRelativePath(path.relative(filePath, cMainPath.replace(BuildData.nodeModulesPath, BuildData.npmOutputDir)))
+    const cRelativePath = promoteRelativePath(
+      path.relative(filePath, cMainPath.replace(BuildData.nodeModulesPath, BuildData.npmOutputDir))
+    )
     importTaroSelfComponents.add({
       path: cRelativePath,
       name: c

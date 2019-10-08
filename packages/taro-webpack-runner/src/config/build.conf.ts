@@ -1,4 +1,4 @@
-import { BuildConfig, TaroBaseConfig } from '../util/types';
+import { BuildConfig, TaroBaseConfig } from '../util/types'
 
 export default ({
   sourceRoot = 'src',

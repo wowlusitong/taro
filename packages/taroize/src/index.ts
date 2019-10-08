@@ -16,7 +16,7 @@ export function parse (option: Option) {
   resetGlobals()
   if (option.json) {
     const config = JSON.parse(option.json)
-    const usingComponents = config['usingComponents']
+    const usingComponents = config.usingComponents
     if (usingComponents) {
       for (const key in usingComponents) {
         if (usingComponents.hasOwnProperty(key)) {

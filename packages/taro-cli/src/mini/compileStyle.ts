@@ -6,25 +6,13 @@ import * as postcss from 'postcss'
 import * as pxtransform from 'postcss-pxtransform'
 import getHashName from '../util/hash'
 import browserList from '../config/browser_list'
-import {
-  resolveNpmPkgMainPath,
-  resolveNpmFilesPath
-} from '../util/resolve_npm_files'
-import {
-  callPlugin, callPluginSync
-} from '../util/npm'
-import {
-  isNpmPkg,
-  processStyleImports,
-  promoteRelativePath,
-  getBabelConfig
-} from '../util'
+import { resolveNpmPkgMainPath, resolveNpmFilesPath } from '../util/resolve_npm_files'
+import { callPlugin, callPluginSync } from '../util/npm'
+import { isNpmPkg, processStyleImports, promoteRelativePath, getBabelConfig } from '../util'
 import { CSS_EXT, FILE_PROCESSOR_MAP, DEVICE_RATIO_NAME, BUILD_TYPES } from '../util/constants'
 import { IMiniAppConfig } from '../util/types'
 
-import {
-  getBuildData
-} from './helper'
+import { getBuildData } from './helper'
 
 const cssUrlParse = require('postcss-url')
 const genericNames = require('generic-names')
@@ -34,8 +22,8 @@ const LocalByDefault = require('postcss-modules-local-by-default')
 const ExtractImports = require('postcss-modules-extract-imports')
 const ResolveImports = require('postcss-modules-resolve-imports')
 interface IStyleObj {
-  css: string,
-  filePath: string
+  css: string;
+  filePath: string;
 }
 
 const isBuildingStyles: Map<string, boolean> = new Map<string, boolean>()
@@ -45,11 +33,11 @@ export function initCompileStyles () {
 }
 
 export interface ICSSModulesConf {
-  enable: boolean,
+  enable: boolean;
   config: {
-    generateScopedName: string | ((localName: string, absoluteFilePath: string) => string),
-    namingPattern: 'global' | 'module'
-  }
+    generateScopedName: string | ((localName: string, absoluteFilePath: string) => string);
+    namingPattern: 'global' | 'module';
+  };
 }
 
 /**
@@ -62,13 +50,16 @@ export async function processStyleUseCssModule (styleObj: IStyleObj): Promise<an
   const weappConf = Object.assign({}, projectConfig.weapp)
   const useModuleConf = weappConf.module || {}
   const customPostcssConf = useModuleConf.postcss || {}
-  const customCssModulesConf = Object.assign({
-    enable: false,
-    config: {
-      generateScopedName: '[name]__[local]___[hash:base64:5]',
-      namingPattern: 'global'
-    }
-  }, customPostcssConf.cssModules || {}) as ICSSModulesConf
+  const customCssModulesConf = Object.assign(
+    {
+      enable: false,
+      config: {
+        generateScopedName: '[name]__[local]___[hash:base64:5]',
+        namingPattern: 'global'
+      }
+    },
+    customPostcssConf.cssModules || {}
+  ) as ICSSModulesConf
   if (!customCssModulesConf.enable) {
     return styleObj
   }
@@ -86,9 +77,10 @@ export async function processStyleUseCssModule (styleObj: IStyleObj): Promise<an
   const context = appPath
   let scopedName
   if (generateScopedName) {
-    scopedName = typeof generateScopedName === 'function'
-      ? (local, filename) => generateScopedName(local, filename)
-      : genericNames(generateScopedName, { context })
+    scopedName =
+      typeof generateScopedName === 'function'
+        ? (local, filename) => generateScopedName(local, filename)
+        : genericNames(generateScopedName, { context })
   } else {
     scopedName = (local, filename) => Scope.generateScopedName(local, path.relative(context, filename))
   }
@@ -111,16 +103,22 @@ async function processStyleWithPostCSS (styleObj: IStyleObj): Promise<string> {
   const publicPath = weappConf.publicPath
   const useModuleConf = weappConf.module || {}
   const customPostcssConf = useModuleConf.postcss || {}
-  const customCssModulesConf = Object.assign({
-    enable: false,
-    config: {
-      generateScopedName: '[name]__[local]___[hash:base64:5]'
-    }
-  }, customPostcssConf.cssModules || {})
-  const customPxtransformConf = Object.assign({
-    enable: true,
-    config: {}
-  }, customPostcssConf.pxtransform || {})
+  const customCssModulesConf = Object.assign(
+    {
+      enable: false,
+      config: {
+        generateScopedName: '[name]__[local]___[hash:base64:5]'
+      }
+    },
+    customPostcssConf.cssModules || {}
+  )
+  const customPxtransformConf = Object.assign(
+    {
+      enable: true,
+      config: {}
+    },
+    customPostcssConf.pxtransform || {}
+  )
   const customUrlConf = {
     enable: true,
     config: {
@@ -128,12 +126,15 @@ async function processStyleWithPostCSS (styleObj: IStyleObj): Promise<string> {
     } as any,
     ...customPostcssConf.url
   }
-  const customAutoprefixerConf = Object.assign({
-    enable: true,
-    config: {
-      browsers: browserList
-    }
-  }, customPostcssConf.autoprefixer || {})
+  const customAutoprefixerConf = Object.assign(
+    {
+      enable: true,
+      config: {
+        browsers: browserList
+      }
+    },
+    customPostcssConf.autoprefixer || {}
+  )
   const postcssPxtransformOption = {
     designWidth: projectConfig.designWidth || 750,
     platform: 'weapp'
@@ -144,7 +145,12 @@ async function processStyleWithPostCSS (styleObj: IStyleObj): Promise<string> {
   }
 
   const maxSize = (customUrlConf.config.limit || 1024) / 1024
-  const postcssPxtransformConf = Object.assign({}, postcssPxtransformOption, customPxtransformConf, customPxtransformConf.config)
+  const postcssPxtransformConf = Object.assign(
+    {},
+    postcssPxtransformOption,
+    customPxtransformConf,
+    customPxtransformConf.config
+  )
   const processors: any[] = []
   if (customAutoprefixerConf.enable) {
     processors.push(autoprefixer(customAutoprefixerConf.config))
@@ -164,7 +170,7 @@ async function processStyleWithPostCSS (styleObj: IStyleObj): Promise<string> {
     }
 
     if (publicPath && typeof url !== 'function') {
-      customUrlConf.config.url = (assets) => {
+      customUrlConf.config.url = assets => {
         if (/\./.test(assets.url)) {
           const hashName = getHashName(assets.absolutePath)
           assets.url = (/\/$/.test(publicPath) ? publicPath : publicPath + '/') + hashName
@@ -185,10 +191,15 @@ async function processStyleWithPostCSS (styleObj: IStyleObj): Promise<string> {
     if (defaultPostCSSPluginNames.indexOf(pluginName) < 0) {
       const pluginConf = customPostcssConf[pluginName]
       if (pluginConf && pluginConf.enable) {
-        if (!isNpmPkg(pluginName)) { // local plugin
+        if (!isNpmPkg(pluginName)) {
+          // local plugin
           pluginName = path.join(appPath, pluginName)
         }
-        processors.push(require(resolveNpmPkgMainPath(pluginName, isProduction, npmConfig, buildAdapter, appPath))(pluginConf.config || {}))
+        processors.push(
+          require(resolveNpmPkgMainPath(pluginName, isProduction, npmConfig, buildAdapter, appPath))(
+            pluginConf.config || {}
+          )
+        )
       }
     }
   })
@@ -215,12 +226,21 @@ function compileImportStyles (filePath: string, importStyles: string[]) {
 }
 
 function compileStyleWithPlugin (filePath) {
-  const { appPath, npmOutputDir, nodeModulesPath, projectConfig, npmConfig, isProduction, buildAdapter, quickappManifest } = getBuildData()
+  const {
+    appPath,
+    npmOutputDir,
+    nodeModulesPath,
+    projectConfig,
+    npmConfig,
+    isProduction,
+    buildAdapter,
+    quickappManifest
+  } = getBuildData()
   const fileExt = path.extname(filePath)
   const pluginName = FILE_PROCESSOR_MAP[fileExt]
   const fileContent = fs.readFileSync(filePath).toString()
   const pluginsConfig = projectConfig.plugins || {}
-  const weappConf = projectConfig.weapp || {} as IMiniAppConfig
+  const weappConf = projectConfig.weapp || ({} as IMiniAppConfig)
   const useCompileConf = Object.assign({}, weappConf.compile)
   const cssImportsRes = processStyleImports(fileContent, buildAdapter, (str, stylePath) => {
     if (stylePath.indexOf('~') === 0) {
@@ -236,7 +256,7 @@ function compileStyleWithPlugin (filePath) {
         npmOutputDir,
         compileConfig: useCompileConf,
         env: projectConfig.env || {},
-        uglify: projectConfig!.plugins!.uglify || {  enable: true  },
+        uglify: projectConfig!.plugins!.uglify || { enable: true },
         babelConfig: getBabelConfig(projectConfig!.plugins!.babel) || {},
         quickappManifest
       })
@@ -251,7 +271,8 @@ function compileStyleWithPlugin (filePath) {
       .then(res => ({
         css: cssImportsRes.style.join('\n') + '\n' + res.css,
         filePath
-      })).catch(err => {
+      }))
+      .catch(err => {
         if (err) {
           console.log(err)
           if (isProduction) {
@@ -276,21 +297,20 @@ export function compileDepStyles (outputFilePath: string, styleFiles: string[]) 
   const pluginsConfig = projectConfig.plugins || {}
   isBuildingStyles.set(outputFilePath, true)
   return Promise.all(styleFiles.map(async p => compileStyleWithPlugin(p))).then(async resList => {
-    await Promise.all(resList.map(res => processStyleWithPostCSS(res)))
-      .then(cssList => {
-        let resContent = cssList.map(res => res).join('\n')
-        // 非生产模式下用户 csso 配置不存在则默认 csso 为禁用
-        let cssoPuginConfig = pluginsConfig.csso || { enable: false }
-        if (isProduction) {
-          cssoPuginConfig = pluginsConfig.csso || { enable: true }
-        }
-        if (cssoPuginConfig.enable) {
-          const cssoConfig = cssoPuginConfig.config || {}
-          const cssoResult = callPluginSync('csso', resContent, outputFilePath, cssoConfig, appPath)
-          resContent = cssoResult.css
-        }
-        fs.ensureDirSync(path.dirname(outputFilePath))
-        fs.writeFileSync(outputFilePath, resContent)
-      })
+    await Promise.all(resList.map(res => processStyleWithPostCSS(res))).then(cssList => {
+      let resContent = cssList.map(res => res).join('\n')
+      // 非生产模式下用户 csso 配置不存在则默认 csso 为禁用
+      let cssoPuginConfig = pluginsConfig.csso || { enable: false }
+      if (isProduction) {
+        cssoPuginConfig = pluginsConfig.csso || { enable: true }
+      }
+      if (cssoPuginConfig.enable) {
+        const cssoConfig = cssoPuginConfig.config || {}
+        const cssoResult = callPluginSync('csso', resContent, outputFilePath, cssoConfig, appPath)
+        resContent = cssoResult.css
+      }
+      fs.ensureDirSync(path.dirname(outputFilePath))
+      fs.writeFileSync(outputFilePath, resContent)
+    })
   })
 }

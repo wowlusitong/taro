@@ -41,8 +41,8 @@ export function showModal (options = {}) {
 
   const res = { errMsg: 'showModel:ok', confirm: false, cancel: false }
 
-  const btnList = [{text: confirmText, color: confirmColor}]
-  showCancel && btnList.push({text: cancelText, color: cancelColor})
+  const btnList = [{ text: confirmText, color: confirmColor }]
+  showCancel && btnList.push({ text: cancelText, color: cancelColor })
 
   return new Promise((resolve, reject) => {
     prompt.showDialog({
@@ -151,7 +151,7 @@ export function setNavigationBarColor (params) {
 
 export function startPullDownRefresh (options = {}) {
   const { success, complete, fail } = options
-  const res = { errMsg: `startPullDownRefresh: ok` }
+  const res = { errMsg: 'startPullDownRefresh: ok' }
   return new Promise((resolve, reject) => {
     try {
       eventCenter.trigger('TaroPage:startPullDownRefresh')
@@ -169,7 +169,7 @@ export function startPullDownRefresh (options = {}) {
 
 export function stopPullDownRefresh (options = {}) {
   const { success, complete, fail } = options
-  const res = { errMsg: `stopPullDownRefresh: ok` }
+  const res = { errMsg: 'stopPullDownRefresh: ok' }
   return new Promise((resolve, reject) => {
     try {
       eventCenter.trigger('TaroPage:stopPullDownRefresh')

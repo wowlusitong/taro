@@ -7,12 +7,12 @@ import { promisify } from 'util'
 
 export const pRimraf = promisify(rimraf)
 
-
 /**
  * 判断是否为子页面
- * @param parentPath 
+ * @param parentPath
  */
-export const isUnderSubPackages = (parentPath: NodePath<t.Node>) => (parentPath.isObjectProperty() && /subpackages/i.test(toVar(parentPath.node.key)))
+export const isUnderSubPackages = (parentPath: NodePath<t.Node>) =>
+  parentPath.isObjectProperty() && /subpackages/i.test(toVar(parentPath.node.key))
 
 export function createRoute ({ absPagename, relPagename, isIndex, chunkName = '' }) {
   const chunkNameComment = chunkName ? `/* webpackChunkName: "${chunkName}" */` : ''
@@ -36,18 +36,13 @@ export function resetTSClassProperty (body) {
         if (t.isExpressionStatement(statement) && t.isAssignmentExpression(statement.expression)) {
           const expr = statement.expression
           const { left, right } = expr
-          if (
-            t.isMemberExpression(left) &&
-              t.isThisExpression(left.object) &&
-              t.isIdentifier(left.property)
-          ) {
+          if (t.isMemberExpression(left) && t.isThisExpression(left.object) && t.isIdentifier(left.property)) {
             if (
-              (t.isArrowFunctionExpression(right) || t.isFunctionExpression(right)) ||
-                (left.property.name === 'config' && t.isObjectExpression(right))
+              t.isArrowFunctionExpression(right) ||
+              t.isFunctionExpression(right) ||
+              (left.property.name === 'config' && t.isObjectExpression(right))
             ) {
-              body.push(
-                t.classProperty(left.property, right)
-              )
+              body.push(t.classProperty(left.property, right))
               remove(method.body.body, statement)
             }
           }
@@ -57,8 +52,8 @@ export function resetTSClassProperty (body) {
   }
 }
 
-export const addLeadingSlash = (url: string) => url.charAt(0) === '/' ? url : '/' + url
+export const addLeadingSlash = (url: string) => (url.charAt(0) === '/' ? url : '/' + url)
 
 export const removeLeadingSlash = (url: string) => url.replace(/^\.?\//, '')
 
-export const stripTrailingSlash = (url: string) => url.charAt(url.length - 1) === '/' ? url.slice(0, -1) : url
+export const stripTrailingSlash = (url: string) => (url.charAt(url.length - 1) === '/' ? url.slice(0, -1) : url)

@@ -6,19 +6,19 @@ import { BUILD_TYPES, REG_STYLE, NODE_MODULES, REG_FONT, REG_MEDIA, REG_IMAGE } 
 import { promoteRelativePath, recursiveFindNodeModules } from './index'
 
 interface IArgs {
-  npmName: string,
-  sourceFilePath: string,
-  filePath: string,
-  isProduction: boolean,
-  npmConfig: INpmConfig,
-  buildAdapter: BUILD_TYPES,
-  root: string,
-  npmOutputDir: string,
-  compileConfig: {[k: string]: any},
-  env: object,
-  uglify: TogglableOptions,
-  babelConfig: object,
-  quickappManifest?: ITaroManifestConfig
+  npmName: string;
+  sourceFilePath: string;
+  filePath: string;
+  isProduction: boolean;
+  npmConfig: INpmConfig;
+  buildAdapter: BUILD_TYPES;
+  root: string;
+  npmOutputDir: string;
+  compileConfig: { [k: string]: any };
+  env: object;
+  uglify: TogglableOptions;
+  babelConfig: object;
+  quickappManifest?: ITaroManifestConfig;
 }
 
 const notExistNpmList: Set<string> = new Set()
@@ -66,10 +66,12 @@ export function getExactedNpmFilePath ({
     })
     const npmInfoMainPath = npmInfo.main
     let outputNpmPath
-    if (REG_STYLE.test(npmInfoMainPath)
-      || REG_FONT.test(npmInfoMainPath)
-      || REG_MEDIA.test(npmInfoMainPath)
-      || REG_IMAGE.test(npmInfoMainPath)) {
+    if (
+      REG_STYLE.test(npmInfoMainPath) ||
+      REG_FONT.test(npmInfoMainPath) ||
+      REG_MEDIA.test(npmInfoMainPath) ||
+      REG_IMAGE.test(npmInfoMainPath)
+    ) {
       outputNpmPath = npmInfoMainPath
       filePath = sourceFilePath
     } else {

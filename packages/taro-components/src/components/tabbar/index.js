@@ -35,7 +35,7 @@ class Tabbar extends Nerv.Component {
 
     this.homePage = addLeadingSlash(props.homePage)
     this.customRoutes = []
-    for (let key in customRoutes) {
+    for (const key in customRoutes) {
       this.customRoutes.push([key, customRoutes[key]])
     }
 
@@ -107,7 +107,7 @@ class Tabbar extends Nerv.Component {
     if (foundIndex > -1) {
       this.switchTab(foundIndex)
       successHandler({
-        errMsg: `switchTab:ok`
+        errMsg: 'switchTab:ok'
       })
     } else {
       errorHandler({
@@ -145,7 +145,7 @@ class Tabbar extends Nerv.Component {
       })
     } else {
       errorHandler({
-        errMsg: `setTabBarBadge:fail tabbar item not found`
+        errMsg: 'setTabBarBadge:fail tabbar item not found'
       })
     }
   }
@@ -161,7 +161,7 @@ class Tabbar extends Nerv.Component {
       })
     } else {
       errorHandler({
-        errMsg: `removeTabBarBadge:fail tabbar item not found`
+        errMsg: 'removeTabBarBadge:fail tabbar item not found'
       })
     }
   }
@@ -178,7 +178,7 @@ class Tabbar extends Nerv.Component {
       })
     } else {
       errorHandler({
-        errMsg: `showTabBarRedDot:fail tabbar item not found`
+        errMsg: 'showTabBarRedDot:fail tabbar item not found'
       })
     }
   }
@@ -194,7 +194,7 @@ class Tabbar extends Nerv.Component {
       })
     } else {
       errorHandler({
-        errMsg: `hideTabBarRedDot:fail tabbar item not found`
+        errMsg: 'hideTabBarRedDot:fail tabbar item not found'
       })
     }
   }

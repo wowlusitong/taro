@@ -6,7 +6,8 @@ export function timeoutInterceptor (chain) {
       reject(new Error('网络链接超时,请稍后再试！'))
     }, (requestParams && requestParams.timeout) || 60000)
 
-    chain.proceed(requestParams)
+    chain
+      .proceed(requestParams)
       .then(res => {
         if (!timeout) return
         clearTimeout(timeout)
@@ -22,10 +23,11 @@ export function timeoutInterceptor (chain) {
 export function logInterceptor (chain) {
   const requestParams = chain.requestParams
   const { method, data, url } = requestParams
+  // eslint-disable-next-line no-console
   console.log(`http ${method || 'GET'} --> ${url} data: `, data)
-  return chain.proceed(requestParams)
-    .then(res => {
-      console.log(`http <-- ${url} result:`, res)
-      return res
-    })
+  return chain.proceed(requestParams).then(res => {
+    // eslint-disable-next-line no-console
+    console.log(`http <-- ${url} result:`, res)
+    return res
+  })
 }

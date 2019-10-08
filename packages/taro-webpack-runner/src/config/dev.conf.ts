@@ -1,6 +1,6 @@
-import * as path from 'path';
+import * as path from 'path'
 
-import { addLeadingSlash, addTrailingSlash } from '../util';
+import { addLeadingSlash, addTrailingSlash } from '../util'
 import {
   getCopyWebpackPlugin,
   getDefinePlugin,
@@ -12,9 +12,9 @@ import {
   getModule,
   getOutput,
   processEnvOption
-} from '../util/chain';
-import { BuildConfig } from '../util/types';
-import getBaseChain from './base.conf';
+} from '../util/chain'
+import { BuildConfig } from '../util/types'
+import getBaseChain from './base.conf'
 
 const emptyObj = {}
 
@@ -35,7 +35,7 @@ export default function (appPath: string, config: Partial<BuildConfig>): any {
     deviceRatio,
     enableSourceMap = true,
     enableExtract = false,
-    
+
     defineConstants = emptyObj,
     env = emptyObj,
     styleLoaderOption = emptyObj,
@@ -46,7 +46,7 @@ export default function (appPath: string, config: Partial<BuildConfig>): any {
     mediaUrlLoaderOption = emptyObj,
     fontUrlLoaderOption = emptyObj,
     imageUrlLoaderOption = emptyObj,
-    
+
     miniCssExtractPluginOption = emptyObj,
     esnextModules = [],
 
@@ -59,20 +59,25 @@ export default function (appPath: string, config: Partial<BuildConfig>): any {
   const plugin = {} as any
 
   if (enableExtract) {
-    plugin.miniCssExtractPlugin = getMiniCssExtractPlugin([{
-      filename: 'css/[name].css',
-      chunkFilename: 'css/[name].css'
-    }, miniCssExtractPluginOption])
+    plugin.miniCssExtractPlugin = getMiniCssExtractPlugin([
+      {
+        filename: 'css/[name].css',
+        chunkFilename: 'css/[name].css'
+      },
+      miniCssExtractPluginOption
+    ])
   }
 
   if (copy) {
     plugin.copyWebpackPlugin = getCopyWebpackPlugin({ copy, appPath })
   }
 
-  plugin.htmlWebpackPlugin = getHtmlWebpackPlugin([{
-    filename: 'index.html',
-    template: path.join(appPath, sourceRoot, 'index.html')
-  }])
+  plugin.htmlWebpackPlugin = getHtmlWebpackPlugin([
+    {
+      filename: 'index.html',
+      template: path.join(appPath, sourceRoot, 'index.html')
+    }
+  ])
   plugin.definePlugin = getDefinePlugin([processEnvOption(env), defineConstants])
   plugin.hotModuleReplacementPlugin = getHotModuleReplacementPlugin()
 
@@ -82,18 +87,21 @@ export default function (appPath: string, config: Partial<BuildConfig>): any {
     mode,
     devtool: getDevtool([enableSourceMap]),
     entry: getEntry(entry),
-    output: getOutput(appPath, [{
-      outputRoot,
-      publicPath: addLeadingSlash(addTrailingSlash(publicPath)),
-      chunkDirectory
-    }, output]),
+    output: getOutput(appPath, [
+      {
+        outputRoot,
+        publicPath: addLeadingSlash(addTrailingSlash(publicPath)),
+        chunkDirectory
+      },
+      output
+    ]),
     resolve: { alias },
     module: getModule(appPath, {
       designWidth,
       deviceRatio,
       enableExtract,
       enableSourceMap,
-  
+
       styleLoaderOption,
       cssLoaderOption,
       lessLoaderOption,
@@ -103,7 +111,7 @@ export default function (appPath: string, config: Partial<BuildConfig>): any {
       imageUrlLoaderOption,
       mediaUrlLoaderOption,
       esnextModules,
-  
+
       module,
       plugins,
       staticDirectory

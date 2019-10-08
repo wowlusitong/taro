@@ -192,7 +192,7 @@ export function diffObjToPath (to, from, res = {}, keyPrev = '') {
 export function queryToJson (str) {
   const dec = decodeURIComponent
   const qp = str.split('&')
-  let ret = {}
+  const ret = {}
   let name
   let val
   for (let i = 0, l = qp.length, item; i < l; ++i) {

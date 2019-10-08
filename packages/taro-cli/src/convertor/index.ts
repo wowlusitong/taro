@@ -48,31 +48,31 @@ const OUTPUT_STYLE_EXTNAME = '.scss'
 const WX_GLOBAL_FN = new Set<string>(['getApp', 'getCurrentPages', 'requirePlugin'])
 
 interface IComponent {
-  name: string,
-  path: string
+  name: string;
+  path: string;
 }
 
 interface IImport {
-  ast: t.File,
-  name: string,
-  wxs?: boolean
+  ast: t.File;
+  name: string;
+  wxs?: boolean;
 }
 
 interface IParseAstOptions {
-  ast: t.File,
-  sourceFilePath: string,
-  outputFilePath: string,
-  importStylePath?: string | null,
-  depComponents?: Set<IComponent>,
-  imports?: IImport[],
-  isApp?: boolean
+  ast: t.File;
+  sourceFilePath: string;
+  outputFilePath: string;
+  importStylePath?: string | null;
+  depComponents?: Set<IComponent>;
+  imports?: IImport[];
+  isApp?: boolean;
 }
 
 interface ITaroizeOptions {
-  json?: string,
-  script?: string,
-  wxml?: string,
-  path?: string
+  json?: string;
+  script?: string;
+  wxml?: string;
+  path?: string;
 }
 
 export default class Convertor {
@@ -132,8 +132,9 @@ export default class Convertor {
     depComponents,
     imports = [],
     isApp = false
-  }: IParseAstOptions): { ast: t.File, scriptFiles: Set<string> } {
+  }: IParseAstOptions): { ast: t.File; scriptFiles: Set<string> } {
     const scriptFiles = new Set<string>()
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this
     let componentClassName: string
     let needInsertImportTaro = false
@@ -192,10 +193,7 @@ export default class Convertor {
             ExportDefaultDeclaration (astPath) {
               const node = astPath.node
               const declaration = node.declaration
-              if (
-                declaration &&
-                (declaration.type === 'ClassDeclaration' || declaration.type === 'ClassExpression')
-              ) {
+              if (declaration && (declaration.type === 'ClassDeclaration' || declaration.type === 'ClassExpression')) {
                 const superClass = declaration.superClass
                 if (superClass) {
                   let isTaroComponent = false
@@ -232,9 +230,7 @@ export default class Convertor {
                   const value = args[0].value
                   analyzeImportUrl(sourceFilePath, scriptFiles, args[0], value)
                 } else if (WX_GLOBAL_FN.has(callee.name)) {
-                  calleePath.replaceWith(
-                    t.memberExpression(t.identifier('Taro'), callee as t.Identifier)
-                  )
+                  calleePath.replaceWith(t.memberExpression(t.identifier('Taro'), callee as t.Identifier))
                   needInsertImportTaro = true
                 }
               }
@@ -255,11 +251,8 @@ export default class Convertor {
           const lastImport = bodyNode.filter(p => p.isImportDeclaration()).pop()
           const hasTaroImport = bodyNode.some(p => p.isImportDeclaration() && p.node.source.value === '@tarojs/taro')
           if (needInsertImportTaro && !hasTaroImport) {
-            (astPath.node as t.Program).body.unshift(
-              t.importDeclaration(
-                [t.importDefaultSpecifier(t.identifier('Taro'))],
-                t.stringLiteral('@tarojs/taro')
-              )
+            ;(astPath.node as t.Program).body.unshift(
+              t.importDeclaration([t.importDefaultSpecifier(t.identifier('Taro'))], t.stringLiteral('@tarojs/taro'))
             )
           }
           astPath.traverse({
@@ -267,33 +260,40 @@ export default class Convertor {
               const value = astPath.node.value
               const extname = path.extname(value)
               if (extname && REG_IMAGE.test(extname) && !REG_URL.test(value)) {
-                let imageRelativePath: string
                 let sourceImagePath: string
-                let outputImagePath: string
                 if (path.isAbsolute(value)) {
                   sourceImagePath = path.join(self.root, value)
                 } else {
                   sourceImagePath = path.resolve(sourceFilePath, '..', value)
                 }
-                imageRelativePath = promoteRelativePath(path.relative(sourceFilePath, sourceImagePath))
-                outputImagePath = self.getDistFilePath(sourceImagePath)
+                const imageRelativePath = promoteRelativePath(path.relative(sourceFilePath, sourceImagePath))
+                const outputImagePath = self.getDistFilePath(sourceImagePath)
                 if (fs.existsSync(sourceImagePath)) {
                   self.copyFileToTaro(sourceImagePath, outputImagePath)
                   printLog(processTypeEnum.COPY, '图片', self.generateShowPath(outputImagePath))
-                } else if (!t.isBinaryExpression(astPath.parent) || astPath.parent.operator !== '+'){
+                } else if (!t.isBinaryExpression(astPath.parent) || astPath.parent.operator !== '+') {
                   printLog(processTypeEnum.ERROR, '图片不存在', self.generateShowPath(sourceImagePath))
                 }
                 if (astPath.parentPath.isVariableDeclarator()) {
                   astPath.replaceWith(t.callExpression(t.identifier('require'), [t.stringLiteral(imageRelativePath)]))
                 } else if (astPath.parentPath.isJSXAttribute()) {
-                  astPath.replaceWith(t.jSXExpressionContainer(t.callExpression(t.identifier('require'), [t.stringLiteral(imageRelativePath)])))
+                  astPath.replaceWith(
+                    t.jSXExpressionContainer(
+                      t.callExpression(t.identifier('require'), [t.stringLiteral(imageRelativePath)])
+                    )
+                  )
                 }
               }
             }
           })
           if (lastImport) {
             if (importStylePath) {
-              lastImport.insertAfter(t.importDeclaration([], t.stringLiteral(promoteRelativePath(path.relative(sourceFilePath, importStylePath)))))
+              lastImport.insertAfter(
+                t.importDeclaration(
+                  [],
+                  t.stringLiteral(promoteRelativePath(path.relative(sourceFilePath, importStylePath)))
+                )
+              )
             }
             if (imports && imports.length) {
               imports.forEach(({ name, ast, wxs }) => {
@@ -306,19 +306,31 @@ export default class Convertor {
                   self.hadBeenBuiltImports.add(importPath)
                   self.writeFileToTaro(importPath, prettier.format(generateMinimalEscapeCode(ast), prettierJSConfig))
                 }
-                lastImport.insertAfter(template(`import ${importName} from '${promoteRelativePath(path.relative(outputFilePath, importPath))}'`, babylonConfig)())
+                lastImport.insertAfter(
+                  template(
+                    `import ${importName} from '${promoteRelativePath(path.relative(outputFilePath, importPath))}'`,
+                    babylonConfig
+                  )()
+                )
               })
             }
             if (depComponents && depComponents.size) {
               depComponents.forEach(componentObj => {
                 const name = pascalCase(componentObj.name)
                 const component = componentObj.path
-                lastImport.insertAfter(template(`import ${name} from '${promoteRelativePath(path.relative(sourceFilePath, component))}'`, babylonConfig)())
+                lastImport.insertAfter(
+                  template(
+                    `import ${name} from '${promoteRelativePath(path.relative(sourceFilePath, component))}'`,
+                    babylonConfig
+                  )()
+                )
               })
             }
 
             if (isApp) {
-              (astPath.node as t.Program).body.push(template(`Taro.render(<App />, document.getElementById('app'))`, babylonConfig)())
+              ;(astPath.node as t.Program).body.push(
+                template("Taro.render(<App />, document.getElementById('app'))", babylonConfig)()
+              )
             }
           }
         }
@@ -351,7 +363,7 @@ export default class Convertor {
   }
 
   getPages () {
-    const pages = this.entryJSON['pages']
+    const pages = this.entryJSON.pages
     if (!pages || !pages.length) {
       console.log(chalk.red(`app${this.fileTypes.CONFIG} 配置有误，缺少页面相关配置`))
       return
@@ -360,7 +372,7 @@ export default class Convertor {
   }
 
   getSubPackages () {
-    const subPackages = this.entryJSON['subpackages'] || this.entryJSON['subPackages']
+    const subPackages = this.entryJSON.subpackages || this.entryJSON.subPackages
     if (!subPackages || !subPackages.length) {
       return
     }
@@ -433,7 +445,10 @@ export default class Convertor {
   }
 
   generateShowPath (filePath: string): string {
-    return filePath.replace(path.join(this.root, '/'), '').split(path.sep).join('/')
+    return filePath
+      .replace(path.join(this.root, '/'), '')
+      .split(path.sep)
+      .join('/')
   }
 
   generateEntry () {
@@ -450,7 +465,9 @@ export default class Convertor {
         ast: taroizeResult.ast,
         sourceFilePath: this.entryJSPath,
         outputFilePath: entryDistJSPath,
-        importStylePath: this.entryStyle ? this.entryStylePath.replace(path.extname(this.entryStylePath), OUTPUT_STYLE_EXTNAME) : null,
+        importStylePath: this.entryStyle
+          ? this.entryStylePath.replace(path.extname(this.entryStylePath), OUTPUT_STYLE_EXTNAME)
+          : null,
         isApp: true
       })
       const jsCode = generateMinimalEscapeCode(ast)
@@ -512,7 +529,7 @@ export default class Convertor {
           const pageUsingComponnets = pageConfig.usingComponents
           if (pageUsingComponnets) {
             // 页面依赖组件
-            let usingComponents = {}
+            const usingComponents = {}
             Object.keys(pageUsingComponnets).forEach(component => {
               let componentPath = path.resolve(pageConfigPath, '..', pageUsingComponnets[component])
               if (!fs.existsSync(resolveScriptPath(componentPath))) {
@@ -534,7 +551,6 @@ export default class Convertor {
             } else {
               pageConfig.usingComponents = usingComponents
             }
-
           }
           param.json = JSON.stringify(pageConfig)
         }
@@ -632,7 +648,9 @@ export default class Convertor {
           ast: taroizeResult.ast,
           sourceFilePath: componentJSPath,
           outputFilePath: componentDistJSPath,
-          importStylePath: componentStyle ? componentStylePath.replace(path.extname(componentStylePath), OUTPUT_STYLE_EXTNAME) : null,
+          importStylePath: componentStyle
+            ? componentStylePath.replace(path.extname(componentStylePath), OUTPUT_STYLE_EXTNAME)
+            : null,
           depComponents,
           imports: taroizeResult.imports
         })
@@ -652,9 +670,7 @@ export default class Convertor {
   }
 
   async styleUnitTransform (filePath: string, content: string) {
-    const postcssResult = await postcss([
-      unitTransform()
-    ]).process(content, {
+    const postcssResult = await postcss([unitTransform()]).process(content, {
       from: filePath
     })
     return postcssResult
@@ -666,8 +682,7 @@ export default class Convertor {
       if (path.isAbsolute(relativePath)) {
         relativePath = promoteRelativePath(path.relative(filePath, path.join(this.root, stylePath)))
       }
-      return str.replace(stylePath, relativePath)
-        .replace(MINI_APP_FILES[BUILD_TYPES.WEAPP].STYLE, OUTPUT_STYLE_EXTNAME)
+      return str.replace(stylePath, relativePath).replace(MINI_APP_FILES[BUILD_TYPES.WEAPP].STYLE, OUTPUT_STYLE_EXTNAME)
     })
     const styleDist = this.getDistFilePath(filePath, OUTPUT_STYLE_EXTNAME)
     const { css } = await this.styleUnitTransform(filePath, content)
@@ -695,7 +710,7 @@ export default class Convertor {
     const description = ''
     const version = getPkgVersion()
     const dateObj = new Date()
-    const date = `${dateObj.getFullYear()}-${(dateObj.getMonth() + 1)}-${dateObj.getDate()}`
+    const date = `${dateObj.getFullYear()}-${dateObj.getMonth() + 1}-${dateObj.getDate()}`
     creator.template(templateName, 'package.json', pkgPath, {
       description,
       projectName,
@@ -731,7 +746,11 @@ export default class Convertor {
       printLog(processTypeEnum.GENERATE, '文件', this.generateShowPath(path.join(configDir, 'dev.js')))
       printLog(processTypeEnum.GENERATE, '文件', this.generateShowPath(path.join(configDir, 'prod.js')))
       printLog(processTypeEnum.GENERATE, '文件', this.generateShowPath(pkgPath))
-      printLog(processTypeEnum.GENERATE, '文件', this.generateShowPath(path.join(this.convertRoot, 'project.config.json')))
+      printLog(
+        processTypeEnum.GENERATE,
+        '文件',
+        this.generateShowPath(path.join(this.convertRoot, 'project.config.json'))
+      )
       printLog(processTypeEnum.GENERATE, '文件', this.generateShowPath(path.join(this.convertRoot, '.gitignore')))
       printLog(processTypeEnum.GENERATE, '文件', this.generateShowPath(path.join(this.convertRoot, '.editorconfig')))
       printLog(processTypeEnum.GENERATE, '文件', this.generateShowPath(path.join(this.convertRoot, '.eslintrc')))
@@ -742,7 +761,11 @@ export default class Convertor {
 
   showLog () {
     console.log()
-    console.log(`${chalk.green('✔ ')} 转换成功，请进入 ${chalk.bold('taroConvert')} 目录下使用 npm 或者 yarn 安装项目依赖后再运行！`)
+    console.log(
+      `${chalk.green('✔ ')} 转换成功，请进入 ${chalk.bold(
+        'taroConvert'
+      )} 目录下使用 npm 或者 yarn 安装项目依赖后再运行！`
+    )
   }
 
   run () {

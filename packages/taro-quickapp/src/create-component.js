@@ -158,11 +158,11 @@ function processEvent (eventHandlerName, obj) {
     // 普通的事件（非匿名函数），会直接call
     if (!isAnonymousFn) {
       if ('so' in bindArgs) {
-        if (bindArgs['so'] !== 'this') {
-          callScope = bindArgs['so']
+        if (bindArgs.so !== 'this') {
+          callScope = bindArgs.so
         }
         isScopeBinded = true
-        delete bindArgs['so']
+        delete bindArgs.so
       }
       if (detailArgs.length > 0) {
         !isScopeBinded && detailArgs[0] && (callScope = detailArgs[0])
@@ -178,11 +178,11 @@ function processEvent (eventHandlerName, obj) {
       // 匿名函数，会将scope作为第一个参数
       let _scope = null
       if ('so' in bindArgs) {
-        if (bindArgs['so'] !== 'this') {
-          _scope = bindArgs['so']
+        if (bindArgs.so !== 'this') {
+          _scope = bindArgs.so
         }
         isScopeBinded = true
-        delete bindArgs['so']
+        delete bindArgs.so
       }
       if (detailArgs.length > 0) {
         !isScopeBinded && detailArgs[0] && (callScope = detailArgs[0])
@@ -258,7 +258,7 @@ export function componentTrigger (component, key, args) {
   args = args || []
 
   if (key === 'componentDidMount') {
-    if (component['$$hasLoopRef']) {
+    if (component.$$hasLoopRef) {
       Current.current = component
       component._disableEffect = true
       component._createData(component.state, component.props, true)
@@ -300,9 +300,9 @@ export default function createComponent (ComponentClass, isPage) {
     componentInstance.state = componentInstance._createData() || componentInstance.state
   } catch (err) {
     if (isPage) {
-      console.warn(`[Taro warn] 请给页面提供初始 \`state\` 以提高初次渲染性能！`)
+      console.warn('[Taro warn] 请给页面提供初始 `state` 以提高初次渲染性能！')
     } else {
-      console.warn(`[Taro warn] 请给组件提供一个 \`defaultProps\` 以提高初次渲染性能！`)
+      console.warn('[Taro warn] 请给组件提供一个 `defaultProps` 以提高初次渲染性能！')
     }
     console.warn(err)
   }
@@ -367,10 +367,10 @@ export default function createComponent (ComponentClass, isPage) {
     }
   }
   if (isPage) {
-    componentConf['onShow'] = function () {
+    componentConf.onShow = function () {
       componentTrigger(this.$component, 'componentDidShow')
     }
-    componentConf['onHide'] = function () {
+    componentConf.onHide = function () {
       componentTrigger(this.$component, 'componentDidHide')
     }
     pageExtraFns.forEach(fn => {
@@ -387,6 +387,6 @@ export default function createComponent (ComponentClass, isPage) {
   }
   bindStaticFns(componentConf, ComponentClass)
   bindProperties(componentConf, ComponentClass, isPage)
-  ComponentClass['privateTaroEvent'] && bindEvents(componentConf, ComponentClass['privateTaroEvent'])
+  ComponentClass.privateTaroEvent && bindEvents(componentConf, ComponentClass.privateTaroEvent)
   return componentConf
 }

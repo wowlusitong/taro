@@ -7,9 +7,11 @@ import generate from 'babel-generator'
 import * as wxTransformer from '@tarojs/transformer-wx'
 import * as Util from '../util'
 import babylonConfig from '../config/babylon'
-import { convertSourceStringToAstExpression as toAst } from '../util/astConvert'
+import {
+  convertSourceStringToAstExpression as toAst,
+  convertAstExpressionToVariable as toVar
+} from '../util/astConvert'
 import { REG_STYLE, REG_TYPESCRIPT, BUILD_TYPES, REG_SCRIPTS } from '../util/constants'
-import { convertAstExpressionToVariable as toVar } from '../util/astConvert'
 
 const template = require('babel-template')
 
@@ -22,14 +24,7 @@ const setStoreFuncName = 'setStore'
 const routerImportDefaultName = 'TaroRouter'
 const DEVICE_RATIO = 'deviceRatio'
 
-const taroApis = [
-  'getEnv',
-  'ENV_TYPE',
-  'eventCenter',
-  'Events',
-  'internal_safe_get',
-  'internal_dynamic_recursive'
-]
+const taroApis = ['getEnv', 'ENV_TYPE', 'eventCenter', 'Events', 'internal_safe_get', 'internal_dynamic_recursive']
 
 const PACKAGES = {
   '@tarojs/taro': '@tarojs/taro',
@@ -38,17 +33,17 @@ const PACKAGES = {
   '@tarojs/redux': '@tarojs/redux',
   '@tarojs/components': '@tarojs/components',
   '@tarojs/components-rn': '@tarojs/components-rn',
-  'react': 'react',
+  react: 'react',
   'react-native': 'react-native',
   'react-redux-rn': '@tarojs/taro-redux-rn',
   '@tarojs/mobx': '@tarojs/mobx',
   '@tarojs/mobx-rn': '@tarojs/mobx-rn'
 }
 
-const additionalConstructorNode = toAst(`Taro._$app = this`)
+const additionalConstructorNode = toAst('Taro._$app = this')
 
 function getInitPxTransformNode (projectConfig) {
-  const pxTransformConfig = {designWidth: projectConfig.designWidth || 750}
+  const pxTransformConfig = { designWidth: projectConfig.designWidth || 750 }
 
   if (projectConfig.hasOwnProperty(DEVICE_RATIO)) {
     pxTransformConfig[DEVICE_RATIO] = projectConfig.deviceRatio
@@ -57,8 +52,8 @@ function getInitPxTransformNode (projectConfig) {
   return initPxTransformNode
 }
 
-function getClassPropertyVisitor ({filePath, pages, iconPaths, isEntryFile}) {
-  return (astPath) => {
+function getClassPropertyVisitor ({ filePath, pages, iconPaths, isEntryFile }) {
+  return astPath => {
     const node = astPath.node
     const key = node.key
     const value = node.value
@@ -97,7 +92,8 @@ function getClassPropertyVisitor ({filePath, pages, iconPaths, isEntryFile}) {
               ObjectProperty (astPath) {
                 const node = astPath.node as any
                 const value = node.value.value
-                if (node.key.name === 'iconPath' ||
+                if (
+                  node.key.name === 'iconPath' ||
                   node.key.value === 'iconPath' ||
                   node.key.name === 'selectedIconPath' ||
                   node.key.value === 'selectedIconPath'
@@ -107,10 +103,9 @@ function getClassPropertyVisitor ({filePath, pages, iconPaths, isEntryFile}) {
                   if (iconPaths.indexOf(value) === -1) {
                     iconPaths.push(value)
                   }
-                  astPath.insertAfter(t.objectProperty(
-                    t.identifier(node.key.name || node.key.value),
-                    t.identifier(iconName)
-                  ))
+                  astPath.insertAfter(
+                    t.objectProperty(t.identifier(node.key.name || node.key.value), t.identifier(iconName))
+                  )
                   astPath.remove()
                 }
               }
@@ -145,19 +140,14 @@ function resetTSClassProperty (body) {
       for (const statement of _.cloneDeep(method.body.body)) {
         if (t.isExpressionStatement(statement) && t.isAssignmentExpression(statement.expression)) {
           const expr = statement.expression
-          const {left, right} = expr
-          if (
-            t.isMemberExpression(left) &&
-            t.isThisExpression(left.object) &&
-            t.isIdentifier(left.property)
-          ) {
+          const { left, right } = expr
+          if (t.isMemberExpression(left) && t.isThisExpression(left.object) && t.isIdentifier(left.property)) {
             if (
-              (t.isArrowFunctionExpression(right) || t.isFunctionExpression(right)) ||
+              t.isArrowFunctionExpression(right) ||
+              t.isFunctionExpression(right) ||
               (left.property.name === 'config' && t.isObjectExpression(right))
             ) {
-              body.push(
-                t.classProperty(left.property, right)
-              )
+              body.push(t.classProperty(left.property, right))
               _.remove(method.body.body, statement)
             }
           }
@@ -171,21 +161,13 @@ const ClassDeclarationOrExpression = {
   enter (astPath) {
     const node = astPath.node
     if (!node.superClass) return
-    if (
-      node.superClass.type === 'MemberExpression' &&
-      node.superClass.object.name === taroImportDefaultName
-    ) {
+    if (node.superClass.type === 'MemberExpression' && node.superClass.object.name === taroImportDefaultName) {
       node.superClass.object.name = taroImportDefaultName
       if (node.id === null) {
         const renameComponentClassName = '_TaroComponentClass'
         componentClassName = renameComponentClassName
         astPath.replaceWith(
-          t.classDeclaration(
-            t.identifier(renameComponentClassName),
-            node.superClass,
-            node.body,
-            node.decorators || []
-          )
+          t.classDeclaration(t.identifier(renameComponentClassName), node.superClass, node.body, node.decorators || [])
         )
       } else {
         componentClassName = node.id.name
@@ -196,12 +178,7 @@ const ClassDeclarationOrExpression = {
         const renameComponentClassName = '_TaroComponentClass'
         componentClassName = renameComponentClassName
         astPath.replaceWith(
-          t.classDeclaration(
-            t.identifier(renameComponentClassName),
-            node.superClass,
-            node.body,
-            node.decorators || []
-          )
+          t.classDeclaration(t.identifier(renameComponentClassName), node.superClass, node.body, node.decorators || [])
         )
       } else {
         componentClassName = node.id.name
@@ -210,7 +187,7 @@ const ClassDeclarationOrExpression = {
   }
 }
 
-export function parseJSCode ({code, filePath, isEntryFile, projectConfig}) {
+export function parseJSCode ({ code, filePath, isEntryFile, projectConfig }) {
   let ast
   try {
     ast = getJSAst(code, filePath)
@@ -265,7 +242,7 @@ export function parseJSCode ({code, filePath, isEntryFile, projectConfig}) {
         if (REG_STYLE.test(valueExtname)) {
           const stylePath = path.resolve(path.dirname(filePath), value)
           if (styleFiles.indexOf(stylePath) < 0) {
-            //样式条件文件编译 .rn.scss
+            // 样式条件文件编译 .rn.scss
             const realStylePath = Util.resolveStylePath(stylePath)
             styleFiles.push(realStylePath)
           }
@@ -281,7 +258,9 @@ export function parseJSCode ({code, filePath, isEntryFile, projectConfig}) {
             const extname = path.extname(absolutePath)
             const realFilePath = Util.resolveScriptPath(path.join(dirname, path.basename(absolutePath, extname)))
             const removeExtPath = realFilePath.replace(path.extname(realFilePath), '')
-            node.source = t.stringLiteral(Util.promoteRelativePath(path.relative(filePath, removeExtPath)).replace(/\\/g, '/'))
+            node.source = t.stringLiteral(
+              Util.promoteRelativePath(path.relative(filePath, removeExtPath)).replace(/\\/g, '/')
+            )
           }
         }
         return
@@ -294,9 +273,7 @@ export function parseJSCode ({code, filePath, isEntryFile, projectConfig}) {
           specifier.local.name = reactImportDefaultName
         } else if (!hasAddReactImportDefaultName) {
           hasAddReactImportDefaultName = true
-          node.specifiers.unshift(
-            t.importDefaultSpecifier(t.identifier(reactImportDefaultName))
-          )
+          node.specifiers.unshift(t.importDefaultSpecifier(t.identifier(reactImportDefaultName)))
         }
         // 删除从@tarojs/taro引入的 React
         specifiers.forEach((item, index) => {
@@ -306,9 +283,16 @@ export function parseJSCode ({code, filePath, isEntryFile, projectConfig}) {
         })
         const taroApisSpecifiers: t.ImportSpecifier[] = []
         specifiers.forEach((item, index) => {
-          if ((item as t.ImportSpecifier).imported && taroApis.indexOf((item as t.ImportSpecifier).imported.name) >= 0) {
+          if (
+            (item as t.ImportSpecifier).imported &&
+            taroApis.indexOf((item as t.ImportSpecifier).imported.name) >= 0
+          ) {
             taroApisSpecifiers.push(
-              t.importSpecifier(t.identifier((item as t.ImportSpecifier).local.name), t.identifier((item as t.ImportSpecifier).imported.name)))
+              t.importSpecifier(
+                t.identifier((item as t.ImportSpecifier).local.name),
+                t.identifier((item as t.ImportSpecifier).imported.name)
+              )
+            )
             specifiers.splice(index, 1)
           }
         })
@@ -346,7 +330,7 @@ export function parseJSCode ({code, filePath, isEntryFile, projectConfig}) {
         source.value = PACKAGES['@tarojs/components-rn']
       }
     },
-    ClassProperty: getClassPropertyVisitor({filePath, pages, iconPaths, isEntryFile}),
+    ClassProperty: getClassPropertyVisitor({ filePath, pages, iconPaths, isEntryFile }),
     ClassMethod: {
       enter (astPath: NodePath<t.ClassMethod>) {
         const node = astPath.node
@@ -432,12 +416,12 @@ export function parseJSCode ({code, filePath, isEntryFile, projectConfig}) {
             }
 
             if (hasComponentDidShow && isComponentDidMount) {
-              const componentDidShowCallNode = toAst(`this.componentDidShow()`)
+              const componentDidShowCallNode = toAst('this.componentDidShow()')
               node.body.body.push(componentDidShowCallNode)
             }
 
             if (hasComponentDidHide && isComponentWillUnmount) {
-              const componentDidHideCallNode = toAst(`this.componentDidHide()`)
+              const componentDidHideCallNode = toAst('this.componentDidHide()')
               node.body.body.unshift(componentDidHideCallNode)
             }
 
@@ -470,23 +454,40 @@ export function parseJSCode ({code, filePath, isEntryFile, projectConfig}) {
               if (!isEntryFile) return
               const node = astPath.node
               if (hasComponentDidShow && !hasComponentDidMount) {
-                node.body.push(t.classMethod(
-                  'method', t.identifier('componentDidMount'), [],
-                  t.blockStatement([
-                    toAst('this.componentDidShow && this.componentDidShow()') as t.Statement
-                  ]), false, false))
+                node.body.push(
+                  t.classMethod(
+                    'method',
+                    t.identifier('componentDidMount'),
+                    [],
+                    t.blockStatement([toAst('this.componentDidShow && this.componentDidShow()') as t.Statement]),
+                    false,
+                    false
+                  )
+                )
               }
               if (hasComponentDidHide && !hasComponentWillUnmount) {
-                node.body.push(t.classMethod(
-                  'method', t.identifier('componentWillUnmount'), [],
-                  t.blockStatement([
-                    toAst('this.componentDidHide && this.componentDidHide()') as t.Statement
-                  ]), false, false))
+                node.body.push(
+                  t.classMethod(
+                    'method',
+                    t.identifier('componentWillUnmount'),
+                    [],
+                    t.blockStatement([toAst('this.componentDidHide && this.componentDidHide()') as t.Statement]),
+                    false,
+                    false
+                  )
+                )
               }
               if (!hasConstructor) {
-                node.body.unshift(t.classMethod(
-                  'method', t.identifier('constructor'), [t.identifier('props'), t.identifier('context')],
-                  t.blockStatement([toAst('super(props, context)'), additionalConstructorNode] as t.Statement[]), false, false))
+                node.body.unshift(
+                  t.classMethod(
+                    'method',
+                    t.identifier('constructor'),
+                    [t.identifier('props'), t.identifier('context')],
+                    t.blockStatement([toAst('super(props, context)'), additionalConstructorNode] as t.Statement[]),
+                    false,
+                    false
+                  )
+                )
               }
             }
           },
@@ -504,9 +505,11 @@ export function parseJSCode ({code, filePath, isEntryFile, projectConfig}) {
               }
             } else {
               if (calleeName === setStoreFuncName) {
-                if (parentPath.isAssignmentExpression() ||
+                if (
+                  parentPath.isAssignmentExpression() ||
                   parentPath.isExpressionStatement() ||
-                  parentPath.isVariableDeclarator()) {
+                  parentPath.isVariableDeclarator()
+                ) {
                   parentPath.remove()
                 }
               }
@@ -515,7 +518,7 @@ export function parseJSCode ({code, filePath, isEntryFile, projectConfig}) {
         })
         // insert React
         if (hasJSX) {
-          node.body.unshift(template(`import React from 'react'`, babylonConfig as any)())
+          node.body.unshift(template("import React from 'react'", babylonConfig as any)())
         }
         // import Taro from @tarojs/taro-rn
         if (taroImportDefaultName) {
@@ -531,10 +534,7 @@ export function parseJSCode ({code, filePath, isEntryFile, projectConfig}) {
           pages.forEach(item => {
             const pagePath = item.startsWith('/') ? item : `/${item}`
             const screenName = _.camelCase(pagePath)
-            const importScreen = template(
-              `import ${screenName} from '.${pagePath}'`,
-              babylonConfig as any
-            )()
+            const importScreen = template(`import ${screenName} from '.${pagePath}'`, babylonConfig as any)()
             node.body.unshift(importScreen as any)
           })
 
@@ -542,10 +542,7 @@ export function parseJSCode ({code, filePath, isEntryFile, projectConfig}) {
           iconPaths.forEach(item => {
             const iconPath = item.startsWith('/') ? item : `/${item}`
             const iconName = _.camelCase(iconPath)
-            const importIcon = template(
-              `import ${iconName} from '.${iconPath}'`,
-              babylonConfig as any
-            )()
+            const importIcon = template(`import ${iconName} from '.${iconPath}'`, babylonConfig as any)()
             node.body.unshift(importIcon as any)
           })
 
@@ -591,10 +588,7 @@ export function parseJSCode ({code, filePath, isEntryFile, projectConfig}) {
 
           // export default App
           if (!hasAppExportDefault) {
-            const appExportDefault = template(
-              `export default ${componentClassName}`,
-              babylonConfig as any
-            )()
+            const appExportDefault = template(`export default ${componentClassName}`, babylonConfig as any)()
             node.body.push(appExportDefault as any)
           }
         }
@@ -602,16 +596,23 @@ export function parseJSCode ({code, filePath, isEntryFile, projectConfig}) {
     }
   })
   try {
-    const constantsReplaceList = Object.assign({
-      'process.env.TARO_ENV': BUILD_TYPES.RN
-    }, Util.generateEnvList(projectConfig.env || {}), Util.generateConstantsList(projectConfig.defineConstants || {}))
+    const constantsReplaceList = Object.assign(
+      {
+        'process.env.TARO_ENV': BUILD_TYPES.RN
+      },
+      Util.generateEnvList(projectConfig.env || {}),
+      Util.generateConstantsList(projectConfig.defineConstants || {})
+    )
     // TODO 使用 babel-plugin-transform-jsx-to-stylesheet 处理 JSX 里面样式的处理，删除无效的样式引入待优化
     ast = babel.transformFromAst(ast, code, {
       plugins: [
-        [require('babel-plugin-transform-jsx-to-stylesheet'), {filePath}],
+        [require('babel-plugin-transform-jsx-to-stylesheet'), { filePath }],
         require('babel-plugin-transform-decorators-legacy').default,
         require('babel-plugin-transform-class-properties'),
-        [require('babel-plugin-danger-remove-unused-import'), {ignore: ['@tarojs/taro', 'react', 'react-native', 'nervjs']}],
+        [
+          require('babel-plugin-danger-remove-unused-import'),
+          { ignore: ['@tarojs/taro', 'react', 'react-native', 'nervjs'] }
+        ],
         [require('babel-plugin-transform-define').default, constantsReplaceList]
       ]
     }).ast
