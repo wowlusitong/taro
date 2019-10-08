@@ -26,11 +26,12 @@ import {
   BUILD_TYPES,
   REG_STYLE,
   REG_TYPESCRIPT,
-  PARSE_AST_TYPE
+  REG_SCRIPT,
+  REG_JSON,
+  REG_FONT,
+  REG_IMAGE,
+  REG_MEDIA
 } from './util/constants'
-import { IComponentObj } from './mini/interface'
-import { parseAst } from './mini/astProcess'
-import { compileDepStyles } from './mini/compileStyle'
 import { IBuildOptions } from './util/types'
 import { setBuildData as setMiniBuildData } from './mini/helper'
 
@@ -45,6 +46,19 @@ interface IBuildData {
   tempPath: string
 }
 
+interface IComponentObj {
+  name?: string,
+  path: string | null,
+  type?: string
+}
+
+interface IParseAstReturn {
+  styleFiles: string[],
+  scriptFiles: string[],
+  jsonFiles: string[],
+  mediaFiles: string[]
+}
+
 const weappOutputName = 'weapp'
 const h5OutputName = 'h5'
 const tempDir = '.temp'
@@ -52,6 +66,72 @@ const tempDir = '.temp'
 let buildData: IBuildData
 
 const processedScriptFiles:Set<string> = new Set()
+
+function parseAst (
+  ast: t.File,
+  sourceFilePath: string
+): IParseAstReturn {
+  const styleFiles: string[] = []
+  const scriptFiles: string[] = []
+  const jsonFiles: string[] = []
+  const mediaFiles: string[] = []
+
+  traverse(ast, {
+    Program: {
+      exit (astPath) {
+        astPath.traverse({
+          ImportDeclaration (astPath) {
+            const node = astPath.node
+            const source = node.source
+            const value = source.value
+            const valueExtname = path.extname(value)
+            if (value.indexOf('.') === 0) {
+              let importPath = path.resolve(path.dirname(sourceFilePath), value)
+              importPath = resolveScriptPath(importPath)
+              if (REG_SCRIPT.test(valueExtname) || REG_TYPESCRIPT.test(valueExtname)) {
+                const vpath = path.resolve(sourceFilePath, '..', value)
+                let fPath = value
+                if (fs.existsSync(vpath) && vpath !== sourceFilePath) {
+                  fPath = vpath
+                }
+                if (scriptFiles.indexOf(fPath) < 0) {
+                  scriptFiles.push(fPath)
+                }
+              } else if (REG_JSON.test(valueExtname)) {
+                const vpath = path.resolve(sourceFilePath, '..', value)
+                if (fs.existsSync(vpath) && jsonFiles.indexOf(vpath) < 0) {
+                  jsonFiles.push(vpath)
+                }
+              } else if (REG_FONT.test(valueExtname) || REG_IMAGE.test(valueExtname) || REG_MEDIA.test(valueExtname)) {
+                const vpath = path.resolve(sourceFilePath, '..', value)
+                if (fs.existsSync(vpath) && mediaFiles.indexOf(vpath) < 0) {
+                  mediaFiles.push(vpath)
+                }
+              } else if (REG_STYLE.test(valueExtname)) {
+                const vpath = path.resolve(path.dirname(sourceFilePath), value)
+                if (fs.existsSync(vpath) && styleFiles.indexOf(vpath) < 0) {
+                  styleFiles.push(vpath)
+                }
+              } else {
+                const vpath = resolveScriptPath(path.resolve(sourceFilePath, '..', value))
+                if (fs.existsSync(vpath) && scriptFiles.indexOf(vpath) < 0) {
+                  scriptFiles.push(vpath)
+                }
+              }
+            }
+          }
+        })
+      }
+    }
+  })
+
+  return {
+    styleFiles,
+    scriptFiles,
+    jsonFiles,
+    mediaFiles
+  }
+}
 
 function setBuildData (appPath, uiIndex) {
   const configDir = path.join(appPath, PROJECT_CONFIG)
@@ -274,7 +354,7 @@ function analyzeFiles (files: string[], sourceDir: string, outputDir: string) {
         scriptFiles,
         jsonFiles,
         mediaFiles
-      } = parseAst(PARSE_AST_TYPE.NORMAL, transformResult.ast, [], file, file, true)
+      } = parseAst(transformResult.ast, file)
       const resFiles = styleFiles.concat(scriptFiles, jsonFiles, mediaFiles)
       if (resFiles.length) {
         resFiles.forEach(item => {
@@ -338,11 +418,7 @@ async function buildForWeapp () {
       isNormal: true,
       isTyped: REG_TYPESCRIPT.test(entryFilePath)
     })
-    const { styleFiles, components } = parseEntryAst(transformResult.ast, entryFilePath)
-    if (styleFiles.length) {
-      const outputStylePath = path.join(outputDir, 'css', 'index.css')
-      await compileDepStyles(outputStylePath, styleFiles)
-    }
+    const { components } = parseEntryAst(transformResult.ast, entryFilePath)
     const relativePath = path.relative(appPath, entryFilePath)
     printLog(processTypeEnum.COPY, '发现文件', relativePath)
     fs.ensureDirSync(path.dirname(outputEntryFilePath))
